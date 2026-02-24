@@ -363,6 +363,8 @@ export interface PlannerTrackCard {
   operator?: {
     name: string
     taskCompletionRate: number
+    taskCompleted: number
+    taskTotal: number
     issueResolutionRate: number
     issueResolved: number
     issueTotal: number
@@ -880,6 +882,8 @@ export const mockPlannerTracks: PlannerTrackCard[] = [
     operator: {
       name: '이운영',
       taskCompletionRate: 85,
+      taskCompleted: 17,
+      taskTotal: 20,
       issueResolutionRate: 95,
       issueResolved: 19,
       issueTotal: 20,
@@ -903,6 +907,8 @@ export const mockPlannerTracks: PlannerTrackCard[] = [
     operator: {
       name: '김운영',
       taskCompletionRate: 90,
+      taskCompleted: 18,
+      taskTotal: 20,
       issueResolutionRate: 88,
       issueResolved: 15,
       issueTotal: 17,

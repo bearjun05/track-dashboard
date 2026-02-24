@@ -17,8 +17,6 @@ export function DebugRoleSwitcher() {
     router.push(ROLE_HOME[role])
   }
 
-  if (process.env.NODE_ENV === 'production') return null
-
   return (
     <div className="flex h-8 shrink-0 items-center gap-3 border-b border-dashed border-orange-300/60 bg-orange-50 px-4">
       <div className="flex items-center gap-1.5 text-[11px] font-medium text-orange-600">

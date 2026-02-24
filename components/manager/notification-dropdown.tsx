@@ -157,7 +157,7 @@ export function NotificationDropdown() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[380px] overflow-hidden rounded-xl border border-border bg-card shadow-xl">
+        <div className="absolute left-0 top-full z-50 mt-2 w-[380px] overflow-hidden rounded-xl border border-border bg-card shadow-xl">
           {viewMode === 'list' ? (
             <>
               <div className="flex items-center justify-between border-b border-border px-4 py-3">

@@ -1,11 +1,9 @@
 'use client'
 
 import { useAdminStore } from '@/lib/admin-store'
-import { ROLE_LABELS } from '@/lib/role-labels'
 import { KanbanBoard } from '@/components/manager/kanban-board'
 import { OperatorChatSection } from '@/components/manager/operator-chat-section'
 import { PlannerTrackCards } from '@/components/manager/planner-track-cards'
-import { NotificationDropdown } from '@/components/manager/notification-dropdown'
 
 const CURRENT_OPERATOR_NAME = '이운영'
 
@@ -39,11 +37,7 @@ export function OperatorDashboardHome() {
           {trackLabel}
         </div>
 
-        <div className="flex items-center gap-3">
-          <NotificationDropdown />
-          <div className="h-5 w-px bg-border" />
-          <span className="text-[13px] text-muted-foreground">{CURRENT_OPERATOR_NAME} <span className="text-foreground/40">{ROLE_LABELS.operator}</span></span>
-        </div>
+        <div className="flex items-center gap-3" />
       </header>
 
       <main className="flex-1 space-y-8 overflow-y-auto px-6 py-6">

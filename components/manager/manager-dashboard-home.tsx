@@ -1,11 +1,9 @@
 'use client'
 
 import { useAdminStore } from '@/lib/admin-store'
-import { ROLE_LABELS } from '@/lib/role-labels'
 import { KanbanBoard } from './kanban-board'
 import { OperatorChatSection } from './operator-chat-section'
 import { PlannerTrackCards } from './planner-track-cards'
-import { NotificationDropdown } from './notification-dropdown'
 
 export function ManagerDashboardHome() {
   const { plannerTracks } = useAdminStore()
@@ -36,11 +34,7 @@ export function ManagerDashboardHome() {
           {trackLabel}
         </div>
 
-        <div className="flex items-center gap-3">
-          <NotificationDropdown />
-          <div className="h-5 w-px bg-border" />
-          <span className="text-[13px] text-muted-foreground">{'이운기'} <span className="text-foreground/40">{ROLE_LABELS.operator_manager}</span></span>
-        </div>
+        <div className="flex items-center gap-3" />
       </header>
 
       {/* Body */}

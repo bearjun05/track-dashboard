@@ -114,13 +114,13 @@ export function PlannerTrackCards({ basePath = '/manager' }: { basePath?: string
                   </div>
                 </div>
 
-                {/* ====== 오른쪽 40%: 학습관리매니저 목록 ====== */}
-                {track.staff && track.staff.length > 0 && (
+                {/* ====== 오른쪽 40%: 운영매니저 현황 ====== */}
+                {track.operator && (
                   <div className="flex w-[40%] shrink-0 flex-col border-l border-border px-5 py-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-muted-foreground">{ROLE_LABELS.learning_manager} {track.staff.length}명</span>
+                      <span className="text-[11px] font-medium text-muted-foreground">{ROLE_LABELS.operator}</span>
                       <Link
-                        href={`${basePath}/tracks/${track.id}`}
+                        href={`/operator/tracks/${track.id}`}
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                       >
@@ -128,21 +128,37 @@ export function PlannerTrackCards({ basePath = '/manager' }: { basePath?: string
                         <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
-                    <div className="mt-2 flex-1 space-y-1.5">
-                      {track.staff.map(s => {
-                        const barColor = s.taskCompletionRate >= 80 ? 'bg-foreground/70' : s.taskCompletionRate >= 60 ? 'bg-foreground/50' : 'bg-foreground/30'
-                        return (
-                          <div key={s.id} className="flex items-center gap-2">
-                            <span className="w-12 shrink-0 truncate text-[12px] font-medium text-foreground">{s.name}</span>
-                            <div className="flex-1">
-                              <div className="h-1 w-full overflow-hidden rounded-full bg-foreground/10">
-                                <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${Math.min(s.taskCompletionRate, 100)}%` }} />
-                              </div>
-                            </div>
-                            <span className="w-8 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">{s.taskCompletionRate}%</span>
-                          </div>
-                        )
-                      })}
+
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-[13px] font-semibold text-foreground">{track.operator.name}</span>
+                    </div>
+
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-muted-foreground">업무완료</span>
+                        <span className="text-[12px] font-semibold tabular-nums text-foreground">
+                          {track.operator.taskCompleted}<span className="font-normal text-muted-foreground">/{track.operator.taskTotal}건</span>
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/8">
+                        <div
+                          className="h-full rounded-full bg-foreground/60 transition-all duration-500"
+                          style={{ width: `${Math.min(track.operator.taskCompletionRate, 100)}%` }}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[11px] text-muted-foreground">이슈처리</span>
+                        <span className="text-[12px] font-semibold tabular-nums text-foreground">
+                          {track.operator.issueResolved}<span className="font-normal text-muted-foreground">/{track.operator.issueTotal}건</span>
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/8">
+                        <div
+                          className="h-full rounded-full bg-foreground/35 transition-all duration-500"
+                          style={{ width: `${Math.min(track.operator.issueResolutionRate, 100)}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
