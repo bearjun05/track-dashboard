@@ -152,7 +152,7 @@ export function OperatorStaffDetail({ trackId, staffId }: { trackId: string; sta
   })
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-6">
         <div className="flex items-center gap-2 text-sm">
           <Link href={`/operator/tracks/${trackId}`} className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"><ArrowLeft className="h-4 w-4" /></Link>

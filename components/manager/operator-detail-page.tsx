@@ -31,7 +31,7 @@ export function OperatorDetailPage({ operatorId }: { operatorId: string }) {
   const incompleteTasks = tasks.filter((t) => !t.isCompleted)
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       {/* Header */}
       <header className="flex h-[60px] shrink-0 items-center justify-between border-b border-border bg-card px-6">
         <div className="flex items-center gap-3">

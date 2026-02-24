@@ -78,6 +78,7 @@ app/                                        # Next.js App Router 페이지
     tracks/new/page.tsx                     # 트랙 생성 위저드
 
 components/
+  layout/                     # 글로벌 레이아웃 (AppShell, AppSidebar, DebugRoleSwitcher)
   dashboard/                  # 학관 대시보드 위젯 (시간패널, 오늘할일, 캘린더, 공지, 이슈)
   interview/                  # 면담/수강생 관리 (팀 순회, 수강생 로그)
   manager/                    # 총괄 대시보드 컴포넌트
@@ -86,6 +87,7 @@ components/
   ui/                         # shadcn/ui 컴포넌트 (46개)
 
 lib/
+  role-store.ts               # 현재 역할 상태 (debug 전환용, Zustand)
   role-labels.ts              # 역할 라벨 중앙 관리 (Single Source of Truth)
   track-creation-types.ts     # 트랙 생성 관련 타입 정의
   task-templates.ts           # 63개 Task 템플릿 + 태그 분류 시스템
@@ -647,6 +649,35 @@ flowchart TD
 | `operator_manager` (총괄) | `/manager/tracks/{trackId}` 또는 `/manager/tracks/{trackId}/staff/{staffId}` | 총괄의 트랙/학관 상세로 이동 |
 | 에스컬레이션 (총괄 수신) | `/operator/tracks/{trackId}` | 운영 트랙 뷰로 이동하여 미처리 상황 직접 확인 |
 
+### 페이지별 예시 링크 (mock 데이터 기준)
+
+**학관 (learning_manager)**
+| 페이지 | 링크 |
+|--------|------|
+| 학관 대시보드 | `/` |
+
+**운영 (operator)**
+| 페이지 | 링크 |
+|--------|------|
+| 운영 대시보드 | `/operator` |
+| AI 트랙 7기 상세 | `/operator/tracks/track1` |
+| BE 트랙 5기 상세 | `/operator/tracks/track2` |
+| 김학관 상세 | `/operator/tracks/track1/staff/staff1` |
+| 이학관 상세 | `/operator/tracks/track1/staff/staff2` |
+| 박학관 상세 | `/operator/tracks/track1/staff/staff3` |
+| 시스템 관리 | `/admin` |
+
+**총괄 (operator_manager)**
+| 페이지 | 링크 |
+|--------|------|
+| 총괄 대시보드 | `/manager` |
+| AI 트랙 7기 상세 | `/manager/tracks/track1` |
+| BE 트랙 5기 상세 | `/manager/tracks/track2` |
+| 김학관 상세 (총괄 시점) | `/manager/tracks/track1/staff/staff1` |
+| 운영매니저 상세 | `/manager/operators/op1` |
+| 시스템 관리 | `/admin` |
+| 트랙 생성 위저드 | `/admin/tracks/new` |
+
 ### 페이지 vs 시스템 관리 분리 원칙
 
 ```
@@ -658,10 +689,58 @@ flowchart TD
 
 `/admin`은 역할이 아닌 **기능 범주**(설정/생성)로 분리한 영역.
 
+### 글로벌 사이드바
+
+`components/layout/app-sidebar.tsx`에서 역할별로 다른 메뉴를 렌더링한다.
+`app/layout.tsx` → `AppShell` → `AppSidebar` + 페이지 콘텐츠 구조.
+
+```
+┌─────────────────────────────────────────────────┐
+│ [DEBUG 역할 전환 바] (dev only)                   │
+├────────────┬────────────────────────────────────┤
+│ [사이드바]  │  [페이지 콘텐츠]                     │
+│ 220px      │  flex-1                            │
+│            │  각 페이지가 자체 헤더 + 본문 관리     │
+└────────────┴────────────────────────────────────┘
+```
+
+#### 총괄 (operator_manager) 사이드바
+
+| 구역 | 메뉴 | 이동 경로 |
+|------|------|----------|
+| 상단 | 대시보드 | `/manager` |
+| 담당 트랙 | AI 트랙 7기, BE 트랙 5기, ... | `/manager/tracks/{id}` |
+| 운영매니저 | 이운영, 김운영, ... | `/manager/operators/{id}` |
+| 하단 | 시스템 관리 | `/admin` |
+
+#### 운영 (operator) 사이드바
+
+| 구역 | 메뉴 | 이동 경로 |
+|------|------|----------|
+| 상단 | 대시보드 | `/operator` |
+| 담당 트랙 | AI 트랙 7기 (펼침/접기) | `/operator/tracks/{id}` |
+|  | └ 김학관, 이학관, 박학관 | `/operator/tracks/{id}/staff/{staffId}` |
+| 하단 | 시스템 관리 | `/admin` |
+
+#### 학관 (learning_manager) 사이드바
+
+| 구역 | 메뉴 | 이동 경로 |
+|------|------|----------|
+| 상단 | 오늘 할 일 | `/` |
+|  | 면담 관리 | `/?tab=interview` |
+
+#### Debug 역할 전환 바
+
+- `components/layout/debug-role-switcher.tsx`
+- **dev 환경에서만 표시** (`process.env.NODE_ENV !== 'production'`)
+- 총괄 / 운영 / 학관 버튼 → 클릭 시 역할 전환 + 해당 역할 홈으로 이동
+- 역할 상태: `lib/role-store.ts` (Zustand)
+
 ### 컴포넌트 디렉토리 매핑
 
 | 디렉토리 | 대응 라우트 | 설명 |
 |----------|-----------|------|
+| `components/layout/` | 전체 | AppShell, AppSidebar, DebugRoleSwitcher |
 | `components/manager/` | `/manager` | 총괄 대시보드 컴포넌트 (ManagerDashboardHome, ManagerSidebar 등) |
 | `components/operator/` | `/operator` | 운영 대시보드 컴포넌트 |
 | `components/dashboard/` | `/` | 학관 대시보드 컴포넌트 |

@@ -46,7 +46,7 @@ const adminMenus = [
 
 export default function AdminPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       <header className="flex h-14 shrink-0 items-center gap-4 border-b border-border bg-card px-6">
         <Link
           href="/manager"

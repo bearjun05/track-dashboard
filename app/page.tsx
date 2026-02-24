@@ -14,7 +14,7 @@ export default function Page() {
   const [currentPage, setCurrentPage] = useState<'task' | 'interview'>('task')
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       <DashboardHeader currentPage={currentPage} onPageChange={setCurrentPage} />
 
       {currentPage === 'task' ? (

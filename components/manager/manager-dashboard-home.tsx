@@ -23,7 +23,7 @@ export function ManagerDashboardHome() {
   const trackLabel = extraCount > 0 ? `${trackSummary}  ·  외 ${extraCount}개` : trackSummary
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       {/* Header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-6">
         <h1 className="text-[15px] font-bold tracking-tight text-foreground">{'APM 운영 관리'}</h1>

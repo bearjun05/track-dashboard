@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useAdminStore } from '@/lib/admin-store'
 import type { TrackTask, TrackTaskStatus } from '@/lib/admin-mock-data'
 import { ROLE_LABELS, ROLE_LABELS_FULL } from '@/lib/role-labels'
-import { ManagerSidebar } from './manager-sidebar'
 import {
   ArrowLeft,
   Bell,
@@ -555,7 +554,6 @@ function MonthlyView({ tasks, onTaskClick, onDateSelect }: {
 
 export function TrackDetailDashboard({ trackId }: { trackId: string }) {
   const { plannerTracks, trackTasks, staffCards, operatorTrackDetails, assignTask, bulkAssignTasks, reassignTask } = useAdminStore()
-  const [activeMenu, setActiveMenu] = useState('dashboard')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all')
   const [selectedTask, setSelectedTask] = useState<TrackTask | null>(null)
@@ -677,10 +675,7 @@ export function TrackDetailDashboard({ trackId }: { trackId: string }) {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <ManagerSidebar activeMenu={activeMenu} onMenuChange={setActiveMenu} />
-
-      <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden bg-background">
         <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-6">
           <div className="flex items-center gap-2.5 text-sm">
             <Link href="/manager" className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
@@ -1079,7 +1074,6 @@ export function TrackDetailDashboard({ trackId }: { trackId: string }) {
             </div>
           </section>
         </main>
-      </div>
 
       {selectedTask && <TaskChatModal task={selectedTask} onClose={() => setSelectedTask(null)} />}
       {reassignTarget && <ReassignModal task={reassignTarget} staffList={staffList} onReassign={reassignTask} onClose={() => setReassignTarget(null)} />}
