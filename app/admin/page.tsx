@@ -23,16 +23,14 @@ const adminMenus = [
     label: '알림 설정',
     description: '트랙별 알림 정책, 임계치, 에스컬레이션 시간 등을 설정합니다.',
     icon: Bell,
-    href: '#',
-    disabled: true,
+    href: '/admin/notifications',
   },
   {
     id: 'track-management',
-    label: '트랙 관리',
-    description: '기존 트랙의 설정 변경, 인원 변경, Task 템플릿 수정을 처리합니다.',
+    label: '트랙 수정',
+    description: '기존 트랙의 기본 정보, 시간표, 챕터, 인원, Task 설정을 수정합니다.',
     icon: FolderOpen,
-    href: '#',
-    disabled: true,
+    href: '/admin/tracks/edit',
   },
   {
     id: 'system-settings',
@@ -49,7 +47,7 @@ export default function AdminPage() {
     <div className="flex h-full flex-col bg-background">
       <header className="flex h-14 shrink-0 items-center gap-4 border-b border-border bg-card px-6">
         <Link
-          href="/manager"
+          href="/managers/mgr1"
           className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />

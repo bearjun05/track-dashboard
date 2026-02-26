@@ -678,7 +678,7 @@ export function TrackDetailDashboard({ trackId }: { trackId: string }) {
     <div className="flex h-full flex-col overflow-hidden bg-background">
         <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-6">
           <div className="flex items-center gap-2.5 text-sm">
-            <Link href="/manager" className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+            <Link href="/managers/mgr1" className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold" style={{ backgroundColor: `${track.color}15`, color: track.color }}>
@@ -834,7 +834,7 @@ export function TrackDetailDashboard({ trackId }: { trackId: string }) {
                         <CalendarOff className="h-3 w-3" />부재
                       </button>
                       <Link
-                        href={`/manager/tracks/${trackId}/staff/${staff.id}`}
+                        href={`/staff/${staff.id}`}
                         className="flex items-center gap-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                       >
                         상세<ChevronRight className="h-3 w-3" />

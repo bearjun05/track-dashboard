@@ -22,7 +22,7 @@ function formatTimeAgo(timestamp: string, now: number): string {
   return `${days}일 전`
 }
 
-export function NoticeSection() {
+export function NoticeSection({ staffId }: { staffId?: string }) {
   const { notices, markNoticeRead, addNoticeReply } = useDashboardStore()
   const [expandedNotice, setExpandedNotice] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')

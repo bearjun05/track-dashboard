@@ -1,12 +1,29 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useDashboardStore } from '@/lib/store'
+import { useStaffDashboard } from '@/lib/hooks/use-staff-dashboard'
+import { trackTaskToTask } from '@/lib/hooks/track-task-adapter'
 import { TaskCard } from './task-card'
 import { Plus, ListTodo } from 'lucide-react'
 import { useState } from 'react'
 
-export function TodayPanel() {
-  const { todayTasks, addTodayTask } = useDashboardStore()
+export function TodayPanel({ staffId }: { staffId?: string }) {
+  const legacyStore = useDashboardStore()
+  const staffData = useStaffDashboard(staffId ?? '')
+
+  const todayTasks = useMemo(() => {
+    if (staffId) {
+      return [
+        ...staffData.untimedTasks.map(trackTaskToTask),
+        ...staffData.selfTasks.map(trackTaskToTask),
+      ]
+    }
+    return legacyStore.todayTasks
+  }, [staffId, staffData.untimedTasks, staffData.selfTasks, legacyStore.todayTasks])
+
+  const addTodayTask = staffId ? staffData.addSelfTask : legacyStore.addTodayTask
+
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
 

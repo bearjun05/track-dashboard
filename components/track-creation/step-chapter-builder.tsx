@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { Plus, Pencil, Check, X, Trash2, Scissors, Wand2 } from 'lucide-react'
+import { Plus, Pencil, Check, X, Trash2, Scissors } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { TrackCreationData, SubjectCard, Chapter } from '@/lib/track-creation-types'
@@ -193,60 +193,6 @@ export function StepChapterBuilder({ data, updateData }: StepChapterBuilderProps
     setEditingChapterId(null)
   }
 
-  // Auto-split: detect subject changes or time gaps
-  const autoSplit = useCallback(() => {
-    const allCards = [
-      ...data.unassignedCards,
-      ...data.chapters.flatMap(c => c.cards),
-    ].sort((a, b) => a.startDate.localeCompare(b.startDate))
-
-    if (allCards.length === 0) return
-
-    const chapters: Chapter[] = []
-    let currentRun: SubjectCard[] = [allCards[0]]
-
-    for (let i = 1; i < allCards.length; i++) {
-      const prev = allCards[i - 1]
-      const curr = allCards[i]
-
-      // New chapter if there's a project card, or a gap > 3 days, or subject category changes significantly
-      const prevEnd = new Date(prev.endDate).getTime()
-      const currStart = new Date(curr.startDate).getTime()
-      const gapDays = (currStart - prevEnd) / (1000 * 60 * 60 * 24)
-
-      const isProjectBoundary = prev.isProject !== curr.isProject
-      const isGap = gapDays > 5
-
-      if (isProjectBoundary || isGap) {
-        const dates = computeChapterDates(currentRun)
-        chapters.push({
-          id: `ch-${Date.now()}-${chapters.length}`,
-          name: `챕터 ${chapters.length + 1}`,
-          order: chapters.length,
-          cards: currentRun,
-          ...dates,
-        })
-        currentRun = [curr]
-      } else {
-        currentRun.push(curr)
-      }
-    }
-
-    // Last run
-    if (currentRun.length > 0) {
-      const dates = computeChapterDates(currentRun)
-      chapters.push({
-        id: `ch-${Date.now()}-${chapters.length}`,
-        name: `챕터 ${chapters.length + 1}`,
-        order: chapters.length,
-        cards: currentRun,
-        ...dates,
-      })
-    }
-
-    updateData({ chapters, unassignedCards: [] })
-  }, [data.unassignedCards, data.chapters, updateData])
-
   // Reset all chapters
   const resetAll = useCallback(() => {
     const allCards = [
@@ -271,16 +217,11 @@ export function StepChapterBuilder({ data, updateData }: StepChapterBuilderProps
           <h2 className="text-[15px] font-semibold text-foreground">챕터 편성</h2>
           <p className="text-xs text-muted-foreground">교과 사이를 클릭하여 챕터를 나누세요. 순서대로 자동 번호가 매겨집니다.</p>
         </div>
-        <div className="flex items-center gap-2">
-          {data.chapters.length > 0 && (
-            <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground" onClick={resetAll}>
-              초기화
-            </Button>
-          )}
-          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={autoSplit}>
-            <Wand2 className="mr-1 h-3 w-3" /> 자동 분할
+        {data.chapters.length > 0 && (
+          <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground" onClick={resetAll}>
+            초기화
           </Button>
-        </div>
+        )}
       </div>
 
       {/* Progress bar */}
@@ -416,7 +357,7 @@ export function StepChapterBuilder({ data, updateData }: StepChapterBuilderProps
           {data.chapters.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border p-4 text-center">
               <p className="text-[11px] text-muted-foreground">아직 챕터가 없습니다.</p>
-              <p className="mt-1 text-[10px] text-muted-foreground/60">교과 사이의 "여기까지 챕터" 버튼을 클릭하거나<br />"자동 분할" 버튼을 사용하세요.</p>
+              <p className="mt-1 text-[10px] text-muted-foreground/60">교과 사이의 "여기까지 챕터" 버튼을 클릭하여<br />챕터를 나눠보세요.</p>
             </div>
           ) : (
             [...data.chapters]

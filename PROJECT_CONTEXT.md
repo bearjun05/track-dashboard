@@ -84,6 +84,7 @@ components/
   manager/                    # 총괄 대시보드 컴포넌트
   operator/                   # 운영 대시보드 컴포넌트
   track-creation/             # 트랙 생성 위저드 (7단계)
+    task-sections/            # Step 5 아코디언 섹션별 컴포넌트
   ui/                         # shadcn/ui 컴포넌트 (46개)
 
 lib/
@@ -131,28 +132,29 @@ lib/
 - 튜터는 선택 사항 (optional)
 
 ### Step 5: Task 생성 (`step-task-generation.tsx`)
-가장 복잡한 단계. **2패널 레이아웃**:
+**순차 아코디언 UX** (토스 스타일 Progressive Disclosure):
 
-#### 왼쪽 패널: "반복 일정" (340px 고정)
-4개 서브탭:
-- **일별**: 시간 그리드 (08~18시) + 시간 미지정 영역
-- **주별**: 요일 그리드 (월~금) + 요일 미지정 영역
-- **챕터별**: 시작일/종료일 오프셋 그리드 (시작일, 시작일+1... / 종료일-1, 종료일)
-- **월별**: 시작일/종료일 오프셋 그리드 (동일 패턴)
+한 번에 하나의 섹션만 활성화되며, 완료 확인 시 다음 섹션이 자동으로 열린다.
 
-각 Task 카드 클릭 시 인라인 편집:
-- 일별/주별: 반복 시간, 요일 설정
-- 챕터별/월별: 기준(시작일/종료일) + 오프셋 일수 설정
-- 삭제 시 5초 Undo 배너 (상단 표시)
+#### 5개 아코디언 섹션 (순서대로)
+1. **매일 반복 Task** (`daily-task-section.tsx`): 시간 그리드 (08~18시) + 시간 미지정 영역
+2. **주간 반복 Task** (`weekly-task-section.tsx`): 요일 그리드 (월~금) + 요일 미지정 영역
+3. **챕터별 Task** (`chapter-task-section.tsx`): 시작일/종료일 오프셋 그리드
+4. **월간 반복 Task** (`monthly-task-section.tsx`): 시작일/종료일 오프셋 그리드
+5. **트랙 일정 Task** (`schedule-task-section.tsx`): 라이프사이클 섹션 (개강전, 개강1주차, 챕터별, 수료준비, 수시)
 
-#### 오른쪽 패널: "트랙 흐름"
-- 기본 뷰: 라이프사이클 섹션별 (개강전, 개강1주차, 챕터별, 수료준비, 수시)
-- **기본 접힌 상태**로 시작, 클릭으로 펼침
-- 대안 뷰: 월별 캘린더 (Gantt 스타일)
+#### 패널 상태 (3가지)
+- **locked**: 이전 단계 미완료 시 비활성 (회색 처리)
+- **active**: 편집 가능. 하단에 "N개 설정 완료" 버튼 + "건너뛰기" 링크
+- **done**: 접힘. 체크 아이콘 + "N개 Task" 요약 배지. 클릭 시 다시 열어 수정 가능
+
+#### 공통 컴포넌트
+- `accordion-panel.tsx`: 상태별 헤더 렌더링, height 트랜지션 애니메이션, 확인/건너뛰기 버튼
+- `shared.tsx`: `TaskCard`, `UndoBar`, `InlineRecurrenceEditor`, `InlineOffsetEditor` 등 공용 UI
 
 #### 기타 기능
 - Custom Task 생성 모달
-- 하단 상태바 + 전체 시트 보기 (풀스크린 오버레이)
+- 하단 상태바 (완료 단계 수 / 전체 Task 수) + 전체 시트 보기 (풀스크린 오버레이)
 - 63개 사전 정의 템플릿 자동 배치
 
 ### Step 6: Task 확인 (`step-task-review.tsx`)
@@ -217,20 +219,25 @@ Task는 여러 태그를 동시에 가질 수 있음:
 
 ```mermaid
 flowchart TD
-    subgraph views [4개 대시보드 뷰]
-        LM["학관 대시보드 /"]
-        Admin["총괄 대시보드 /admin"]
-        Op["운영 대시보드 /operator"]
-        Wizard["트랙 생성 /admin/tracks/new"]
+    subgraph dashboards [개인별 대시보드]
+        LM["/staff/staffId"]
+        Mgr["/managers/mgrId"]
+        Op["/operators/opId"]
     end
-    Admin --> TrackDetail["/admin/tracks/id"]
-    Admin --> OpDetail["/admin/operators/id"]
-    TrackDetail --> StaffDetail["/admin/tracks/id/staff/staffId"]
-    Op --> OpTrackDetail["/operator/tracks/id"]
-    OpTrackDetail --> OpStaffDetail["/operator/tracks/id/staff/staffId"]
+    subgraph shared [공유 페이지]
+        Track["/tracks/trackId"]
+        Admin["/admin"]
+        Wizard["/admin/tracks/new"]
+    end
+    Mgr --> Track
+    Mgr --> Op
+    Mgr --> LM
+    Op --> Track
+    Op --> LM
+    Admin --> Wizard
 ```
 
-### 6-1. 학관 대시보드 — `/` (메인 페이지)
+### 6-1. 학관 대시보드 — `/staff/[id]`
 학습관리매니저가 사용하는 일일 업무 화면. 2개 탭으로 구성:
 
 **[Task 탭]** 3단 레이아웃:
@@ -248,7 +255,7 @@ flowchart TD
 
 **Task 카드** (`task-card.tsx`): 중요도 별표, 완료 체크, 시간/마감일, 첨부/메시지 카운트, 클릭 시 상세 모달(내용 편집, 채팅)
 
-### 6-2. 총괄 대시보드 — `/admin`
+### 6-2. 총괄 대시보드 — `/managers/[id]`
 운영기획매니저가 전체 트랙을 모니터링하는 화면:
 
 **홈** (`admin-dashboard-home.tsx`):
@@ -256,41 +263,27 @@ flowchart TD
 - **운영매니저 채팅** (`operator-chat-section.tsx`): 운영매니저별 대화 스레드
 - **담당 트랙 카드** (`planner-track-cards.tsx`): 좌 60% 트랙 정보(완료율/이슈/인원), 우 40% 학관 목록(이름+완료율 바)
 
-**트랙 상세** (`/admin/tracks/[id]` → `track-detail-dashboard.tsx`):
-- 사이드바 + 트랙명/운영매니저/인원수 헤더
-- 핵심 지표: 학관 업무완료율, 이슈 처리율, 운영 업무완료율
-- 경고 알림: 지연 Task, 미배정 Task, 대기 이슈
-- 학관 현황: 인당 완료율, 지연, 휴가, 안읽은 메시지
-- 미배정 Task: 학관 배정 드롭다운, 일괄 배정
-- Task 뷰: 리스트/주간/월간 전환, 필터(날짜/학관/유형), 채팅 모달, 재배정 모달
+**트랙 상세** (`/tracks/[id]` → `operator-track-detail.tsx`):
+- 총괄/운영 모두 동일한 화면 (엔티티 기반 라우팅)
+- 트랙 일정 캘린더, 학관 칼럼, 미배정 Task 관리
+- 공지 패널, 핵심 지표
 
-**운영매니저 상세** (`/admin/operators/[id]` → `operator-detail-page.tsx`):
+**운영매니저 상세** (`/operators/[id]` → `operator-detail-page.tsx`):
 - 좌 40%: 운영매니저 업무완료율, 미완료/완료 Task 목록
 - 우 60%: 트랙별 학관 현황 (완료율, 안읽은 메시지, 미수행 순회)
 
-**학관 상세** (`/admin/tracks/[id]/staff/[staffId]` → `staff-detail-page.tsx`):
+**학관 상세** (`/staff/[id]` → `staff-detail-page.tsx`):
 - 상단 40%/60%: Task 대화 카드(스레드 모달) + 요청/이슈(탭: 대기/처리/완료)
 - 하단: 업무 리스트(전체/완료/미완료 탭)
 
-### 6-3. 운영 대시보드 — `/operator`
+### 6-3. 운영 대시보드 — `/operators/[id]`
 운영매니저가 학관과 총괄 사이에서 소통하며 실무를 관리하는 화면:
 
 **홈** (`operator-dashboard-home.tsx`):
 - 총괄 대시보드와 동일한 칸반/채팅/트랙 카드 공유 (basePath만 다름)
 - 칸반 필터에 총괄/운영/학관 3개 역할 모두 포함
 
-**트랙 상세** (`/operator/tracks/[id]` → `operator-track-detail.tsx`):
-- 트랙 일정 캘린더 (일별/주별/챕터별/월별)
-- 일정 관리: 추가/편집/삭제
-- 공지 패널: 전체 + 학관별 토글
-- 미배정 Task 관리
-- 학관 칼럼: D&D로 Task 이동
-- 핵심 지표: 학관 업무완료율
-
-**학관 상세** (`/operator/tracks/[id]/staff/[staffId]` → `operator-staff-detail.tsx`):
-- 요약: 완료율, 완료/지연/대기 건수
-- Task 대화 + 요청/이슈 (admin 학관 상세와 유사)
-- Task 리스트: 완료 처리 가능
+_(트랙 상세와 학관 상세는 6-2 참조 — 엔티티 기반으로 통합됨)_
 
 ### 6-4. 트랙 생성 위저드 — `/admin/tracks/new`
 7단계 멀티스텝 위저드: 기본정보 → 시간표 업로드 → 챕터 편성 → 인원 배정 → Task 생성 → Task 확인 → 최종 확인.
@@ -360,8 +353,9 @@ staff, generatedTasks, recurrenceConfigs, customTemplates
 ### Task 생성 UI (Step 5)
 - **1차**: 3패널 (시간 그리드 / 캘린더 / 미배정 풀) + D&D
 - **2차**: 필터 리스트뷰로 변경
-- **3차 (현재)**: 2패널 (반복 일정 / 트랙 흐름) + 인라인 편집
-- **이유**: 반복 일정과 트랙 흐름은 성격이 다르므로 분리. 인라인 편집이 모달보다 빠름
+- **3차**: 2패널 (반복 일정 / 트랙 흐름) + 인라인 편집
+- **4차 (현재)**: 순차 아코디언 (토스 스타일 Progressive Disclosure)
+- **이유**: 한 화면에 너무 많은 정보를 동시에 보여주면 복잡. 단계별로 하나씩 설정하는 것이 직관적
 
 ### 챕터별/월별 오프셋 그리드
 - **초기**: 시작/진행/종료 3단 분류
@@ -401,37 +395,37 @@ staff, generatedTasks, recurrenceConfigs, customTemplates
 
 | ID | 알림명 | 트리거 조건 | 수신자 | 필수 | 클릭 시 이동 |
 |----|--------|------------|--------|------|-------------|
-| `SYS-01` | Task 기한 초과 | Task의 dueDate 경과 + status !== completed | 해당 학관 + 담당 운영 | 필수 | 학관: `/` 해당 Task 상세 모달, 운영: `/operator/tracks/{trackId}` 해당 Task |
-| `SYS-02` | Task 미배정 알림 | 매일 **오전 11:30**에 해당 트랙의 미배정 Task가 1건 이상 존재 | 담당 운영 | 필수 | `/operator/tracks/{trackId}#unassigned` 미배정 Task 시트 |
-| `SYS-03` | Task 자동 활성화 | Task의 scheduledDate가 당일 도래 (pending → in-progress 전환 시점) | 해당 학관 + 담당 운영 | 필수 | 학관: `/` 오늘 할 일, 운영: `/operator/tracks/{trackId}` |
+| `SYS-01` | Task 기한 초과 | Task의 dueDate 경과 + status !== completed | 해당 학관 + 담당 운영 | 필수 | 학관: `/staff/{staffId}`, 운영: `/tracks/{trackId}` |
+| `SYS-02` | Task 미배정 알림 | 매일 **오전 11:30**에 해당 트랙의 미배정 Task가 1건 이상 존재 | 담당 운영 | 필수 | `/tracks/{trackId}#unassigned` 미배정 Task 시트 |
+| `SYS-03` | Task 자동 활성화 | Task의 scheduledDate가 당일 도래 (pending → in-progress 전환 시점) | 해당 학관 + 담당 운영 | 필수 | 학관: `/staff/{staffId}`, 운영: `/tracks/{trackId}` |
 
 ### 10-3. 액션 기반 알림
 
 | ID | 알림명 | 트리거 액션 | 발신 → 수신 | 필수 | 클릭 시 이동 |
 |----|--------|-----------|------------|------|-------------|
-| `ACT-01` | 새 이슈 (일반) | 학관이 이슈 작성 | 학관 → 담당 운영 | 필수 | 운영: `/operator/tracks/{trackId}/staff/{staffId}#issues` |
-| `ACT-02` | 긴급 이슈 | 학관이 urgency=urgent 이슈 작성 | 학관 → 담당 운영 + **총괄** | 필수 | 운영: `/operator/tracks/{trackId}/staff/{staffId}#issues`, 총괄: `/admin/tracks/{trackId}/staff/{staffId}#issues` |
-| `ACT-03` | 이슈 답변 도착 | 운영이 이슈에 답변 | 운영 → 해당 학관 | 필수 | 학관: `/` 이슈 섹션 해당 이슈 |
-| `ACT-04` | 이슈 상태 변경 | 운영이 이슈 상태 변경 (pending→in-progress→done) | 운영 → 해당 학관 | 선택 | 학관: `/` 이슈 섹션 해당 이슈 |
-| `ACT-05` | Task 완료 | 학관이 Task 완료 처리 | 학관 → 담당 운영 | 선택 | 운영: `/operator/tracks/{trackId}/staff/{staffId}` 해당 Task |
-| `ACT-06` | Task 배정됨 | 운영이 학관에게 Task 배정 | 운영 → 해당 학관 | 필수 | 학관: `/` 오늘 할 일 해당 Task |
-| `ACT-07` | Task 재배정 | 운영이 Task를 다른 학관으로 이동 | 운영 → 새 학관 + 이전 학관 | 필수 | 학관: `/` 오늘 할 일 |
-| `ACT-08` | 새 공지 등록 | 운영이 공지 작성 (전체 또는 개인 대상) | 운영 → 대상 학관 | 필수 | 학관: `/` 공지 섹션 해당 공지 |
-| `ACT-09` | 공지 답변 | 학관이 공지에 답변 | 학관 → 운영 | 선택 | 운영: `/operator/tracks/{trackId}#notices` |
+| `ACT-01` | 새 이슈 (일반) | 학관이 이슈 작성 | 학관 → 담당 운영 | 필수 | `/staff/{staffId}#issues` |
+| `ACT-02` | 긴급 이슈 | 학관이 urgency=urgent 이슈 작성 | 학관 → 담당 운영 + **총괄** | 필수 | `/staff/{staffId}#issues` |
+| `ACT-03` | 이슈 답변 도착 | 운영이 이슈에 답변 | 운영 → 해당 학관 | 필수 | `/staff/{staffId}` 이슈 섹션 |
+| `ACT-04` | 이슈 상태 변경 | 운영이 이슈 상태 변경 (pending→in-progress→done) | 운영 → 해당 학관 | 선택 | `/staff/{staffId}` 이슈 섹션 |
+| `ACT-05` | Task 완료 | 학관이 Task 완료 처리 | 학관 → 담당 운영 | 선택 | `/staff/{staffId}` 해당 Task |
+| `ACT-06` | Task 배정됨 | 운영이 학관에게 Task 배정 | 운영 → 해당 학관 | 필수 | `/staff/{staffId}` 오늘 할 일 |
+| `ACT-07` | Task 재배정 | 운영이 Task를 다른 학관으로 이동 | 운영 → 새 학관 + 이전 학관 | 필수 | `/staff/{staffId}` 오늘 할 일 |
+| `ACT-08` | 새 공지 등록 | 운영이 공지 작성 (전체 또는 개인 대상) | 운영 → 대상 학관 | 필수 | `/staff/{staffId}` 공지 섹션 |
+| `ACT-09` | 공지 답변 | 학관이 공지에 답변 | 학관 → 운영 | 선택 | `/tracks/{trackId}#notices` |
 | `ACT-10` | 새 메시지 | 채팅/대화 스레드에 새 메시지 | 발신자 → 상대방 | 필수 | 해당 대화 스레드 (역할별 경로 자동 결정) |
-| `ACT-11` | 칸반 카드 생성 | 총괄/운영이 업무 카드 생성 | 생성자 → 대상자 | 필수 | 운영: `/operator` 칸반 보드, 총괄: `/admin` 칸반 보드 |
+| `ACT-11` | 칸반 카드 생성 | 총괄/운영이 업무 카드 생성 | 생성자 → 대상자 | 필수 | `/operators/{opId}` 또는 `/managers/{mgrId}` 칸반 보드 |
 | `ACT-12` | 칸반 카드 답변 | 칸반 카드에 답글 | 답변자 → 카드 관련자 | 선택 | 해당 칸반 카드 상세 |
-| `ACT-13` | 학관 휴가 등록 | 운영이 학관 휴가 처리 | 운영 → 해당 학관 + 총괄 | 필수 | 학관: `/` 캘린더, 총괄: `/admin/tracks/{trackId}/staff/{staffId}` |
+| `ACT-13` | 학관 휴가 등록 | 운영이 학관 휴가 처리 | 운영 → 해당 학관 + 총괄 | 필수 | 학관: `/staff/{staffId}` 캘린더, 총괄: `/staff/{staffId}` |
 
 ### 10-4. 임계치 알림 (커스터마이징 핵심)
 
 | ID | 알림명 | 트리거 조건 | 수신자 | 기본 임계치 | 커스터마이징 범위 | 클릭 시 이동 |
 |----|--------|-----------|--------|-----------|----------------|-------------|
-| `THR-01` | 학관 업무완료율 저조 | **오후 2시** 기준 학관 업무완료율 < 기준치 | 담당 운영 | **30%** | 10~90% (총괄이 트랙 단위 조절) | `/operator/tracks/{trackId}` 학관 현황 |
-| `THR-02` | 운영 업무완료율 저조 | **오후 2시** 기준 운영 업무완료율 < 기준치 | 총괄 | **30%** | 10~90% (총괄이 트랙 단위 조절) | `/admin/operators/{operatorId}` |
-| `THR-03` | 이슈 미처리 누적 | 미처리(pending) 이슈가 N건 이상 | 담당 운영 + 총괄 | 3건 | 1~10건 (총괄이 트랙 단위 조절) | 운영: `/operator/tracks/{trackId}/staff/{staffId}#issues`, 총괄: `/admin/tracks/{trackId}` |
+| `THR-01` | 학관 업무완료율 저조 | **오후 2시** 기준 학관 업무완료율 < 기준치 | 담당 운영 | **30%** | 10~90% (총괄이 트랙 단위 조절) | `/tracks/{trackId}` 학관 현황 |
+| `THR-02` | 운영 업무완료율 저조 | **오후 2시** 기준 운영 업무완료율 < 기준치 | 총괄 | **30%** | 10~90% (총괄이 트랙 단위 조절) | `/operators/{operatorId}` |
+| `THR-03` | 이슈 미처리 누적 | 미처리(pending) 이슈가 N건 이상 | 담당 운영 + 총괄 | 3건 | 1~10건 (총괄이 트랙 단위 조절) | `/staff/{staffId}#issues` |
 | `THR-04` | 안읽은 메시지 누적 | 안읽은 메시지가 N건 이상 | 해당 역할 본인 | 5건 | 1~20건 (개인 설정) | 해당 채팅/대화 목록 |
-| `THR-05` | Task 기한초과 누적 | overdue 상태 Task가 N건 이상 | 담당 운영 + 총괄 | 3건 | 1~10건 (총괄이 트랙 단위 조절) | 운영: `/operator/tracks/{trackId}`, 총괄: `/admin/tracks/{trackId}` |
+| `THR-05` | Task 기한초과 누적 | overdue 상태 Task가 N건 이상 | 담당 운영 + 총괄 | 3건 | 1~10건 (총괄이 트랙 단위 조절) | `/tracks/{trackId}` |
 
 ### 10-5. 역할별 알림 수신 매트릭스
 
@@ -523,8 +517,8 @@ flowchart TD
 
 #### 에스컬레이션 알림의 linkTo
 
-에스컬레이션된 알림은 **운영 트랙 페이지** (`/operator/tracks/{trackId}`)로 이동.
-상위 역할(총괄)이 해당 운영의 트랙 현황을 직접 확인할 수 있도록 함.
+에스컬레이션된 알림은 **트랙 페이지** (`/tracks/{trackId}`)로 이동.
+상위 역할(총괄)이 해당 트랙 현황을 직접 확인할 수 있도록 함.
 
 #### 에스컬레이션 타이머 체크 주기
 
@@ -589,105 +583,93 @@ flowchart TD
 
 ---
 
-## 11. 라우트 구조 및 역할별 페이지
+## 11. 라우트 구조 — 엔티티 기반 라우팅
 
-### 라우트-역할 매핑
+페이지는 **"보는 사람의 역할"이 아닌 "대상 엔티티"** 기준으로 존재한다.
+트랙 페이지는 누가 열든 동일하고, 각 매니저/학관매는 자기만의 대시보드 페이지를 갖는다.
 
-| 경로 | 역할 | 용도 | 비고 |
-|------|------|------|------|
-| `/` | 학관 (`learning_manager`) | 학관 대시보드, 일일 업무 | 메인 페이지 |
-| `/operator` | 운영 (`operator`) | 운영 대시보드, 트랙 관리 | |
-| `/operator/tracks/[id]` | 운영 | 트랙 상세 (운영 시점) | |
-| `/operator/tracks/[id]/staff/[staffId]` | 운영 | 학관 상세 (운영 시점) | |
-| `/manager` | 총괄 (`operator_manager`) | 총괄 대시보드, KPI 모니터링 | |
-| `/manager/tracks/[id]` | 총괄 | 트랙 상세 (총괄 시점) | |
-| `/manager/tracks/[id]/staff/[staffId]` | 총괄 | 학관 상세 (총괄 시점) | |
-| `/manager/operators/[id]` | 총괄 | 운영매니저 상세 | |
-| `/admin` | 총괄 | 시스템 관리 메뉴 | 트랙 생성, 알림 설정, 시스템 설정 |
-| `/admin/tracks/new` | 총괄 | 트랙 생성 위저드 | |
+### 라우트 매핑
 
-### 역할별 페이지 접근 권한
+| 경로 | 대상 엔티티 | 용도 | 비고 |
+|------|-----------|------|------|
+| `/` | — | 역할별 자동 리다이렉트 | 총괄→`/managers/mgr1`, 운영→`/operators/op1`, 학관→`/staff/staff1` |
+| `/tracks/[id]` | 트랙 | 트랙 상세 (모든 역할 동일 화면) | `OperatorTrackDetail` 컴포넌트 |
+| `/managers/[id]` | 총괄매니저 | 총괄 대시보드 | `ManagerDashboardHome` 컴포넌트 |
+| `/operators/[id]` | 운영매니저 | 운영 대시보드 | `OperatorDashboardHome` 컴포넌트 |
+| `/staff/[id]` | 학관매니저 | 학관 대시보드 | 학관 Task/면담 관리 |
+| `/admin` | 시스템 | 시스템 관리 메뉴 | 트랙 생성, 알림 설정, 시스템 설정 |
+| `/admin/tracks/new` | 시스템 | 트랙 생성 위저드 | |
+
+### 열람 권한 (소속 관계 기반)
 
 | 페이지 | 총괄 | 운영 | 학관 | 비고 |
 |--------|:----:|:----:|:----:|------|
-| `/` (학관 대시보드) | — | — | ✅ 본인만 | 학관은 본인 대시보드만 접근 |
-| `/operator` (운영 대시보드) | ✅ | ✅ 본인만 | — | |
-| `/operator/tracks/[id]` | ✅ | ✅ 담당 트랙만 | — | |
-| `/operator/tracks/[id]/staff/[staffId]` | ✅ | ✅ 담당 학관만 | — | |
-| `/manager` (총괄 대시보드) | ✅ | — | — | 총괄 전용 |
-| `/manager/tracks/[id]` | ✅ | — | — | |
-| `/manager/tracks/[id]/staff/[staffId]` | ✅ | — | — | |
-| `/manager/operators/[id]` | ✅ | — | — | |
-| `/admin` (시스템 관리) | ✅ | ✅ | — | 운영도 알림 설정 등 접근 가능 |
+| `/tracks/[id]` | ✅ 모든 트랙 | ✅ 담당 트랙만 | — | 트랙 상세는 역할 무관 동일 화면 |
+| `/managers/[id]` | ✅ 본인 | — | — | |
+| `/operators/[id]` | ✅ 담당 운영매 | ✅ 본인만 | — | |
+| `/staff/[id]` | ✅ 담당 학관매 | ✅ 담당 학관매 | ✅ 본인만 | |
+| `/admin` | ✅ | ✅ | — | 운영도 알림 설정 등 접근 가능 |
 | `/admin/tracks/new` | ✅ | — | — | 트랙 생성은 총괄만 |
 
 #### 접근 범위 요약
 
 ```
 총괄 (operator_manager)
-  └─ 모든 페이지 접근 가능
-     /manager, /operator, /admin, /(학관 뷰 제외)
+  └─ /managers/{본인}       → 본인 대시보드
+  └─ /tracks/{모든 트랙}    → 트랙 상세
+  └─ /operators/{담당 운영}  → 운영매 대시보드
+  └─ /staff/{담당 학관}     → 학관매 대시보드
+  └─ /admin                → 시스템 관리
 
 운영 (operator)
-  └─ /admin          → 시스템 관리 (알림 설정 등)
-  └─ /operator       → 본인 대시보드
-  └─ /operator/tracks/{본인 담당 트랙}     → 담당 트랙 상세
-  └─ /operator/tracks/{...}/staff/{담당 학관} → 담당 학관 상세
+  └─ /operators/{본인}      → 본인 대시보드
+  └─ /tracks/{담당 트랙}    → 트랙 상세
+  └─ /staff/{담당 학관}     → 학관매 대시보드
+  └─ /admin                → 시스템 관리
 
 학관 (learning_manager)
-  └─ /               → 본인 대시보드만
+  └─ /staff/{본인}          → 본인 대시보드만
 ```
 
 ### 알림 linkTo 규칙
 
-알림의 `linkTo` 경로는 **수신자 역할의 페이지**로 이동해야 한다:
+알림의 `linkTo`는 **대상 엔티티 페이지**로 직접 이동한다:
 
-| 수신자 역할 | linkTo 패턴 | 예시 |
-|------------|------------|------|
-| `learning_manager` (학관) | `/` | 학관 대시보드로 이동 |
-| `operator` (운영) | `/operator/tracks/{trackId}` 또는 `/operator/tracks/{trackId}/staff/{staffId}` | 운영의 트랙/학관 상세로 이동 |
-| `operator_manager` (총괄) | `/manager/tracks/{trackId}` 또는 `/manager/tracks/{trackId}/staff/{staffId}` | 총괄의 트랙/학관 상세로 이동 |
-| 에스컬레이션 (총괄 수신) | `/operator/tracks/{trackId}` | 운영 트랙 뷰로 이동하여 미처리 상황 직접 확인 |
+| 대상 | linkTo 패턴 | 예시 |
+|------|------------|------|
+| 트랙 관련 | `/tracks/{trackId}` | 트랙 상세로 이동 |
+| 학관 관련 | `/staff/{staffId}` | 학관 대시보드로 이동 |
+| 운영매 관련 | `/operators/{operatorId}` | 운영매 대시보드로 이동 |
+| 에스컬레이션 | `/tracks/{trackId}` | 트랙 상세에서 미처리 확인 |
 
 ### 페이지별 예시 링크 (mock 데이터 기준)
 
-**학관 (learning_manager)**
+**학관 (learning_manager) — 김학관**
 | 페이지 | 링크 |
 |--------|------|
-| 학관 대시보드 | `/` |
+| 본인 대시보드 | `/staff/staff1` |
 
-**운영 (operator)**
+**운영 (operator) — 이운영**
 | 페이지 | 링크 |
 |--------|------|
-| 운영 대시보드 | `/operator` |
-| AI 트랙 7기 상세 | `/operator/tracks/track1` |
-| BE 트랙 5기 상세 | `/operator/tracks/track2` |
-| 김학관 상세 | `/operator/tracks/track1/staff/staff1` |
-| 이학관 상세 | `/operator/tracks/track1/staff/staff2` |
-| 박학관 상세 | `/operator/tracks/track1/staff/staff3` |
+| 본인 대시보드 | `/operators/op1` |
+| AI 트랙 7기 상세 | `/tracks/track1` |
+| 김학관 대시보드 | `/staff/staff1` |
+| 이학관 대시보드 | `/staff/staff2` |
+| 박학관 대시보드 | `/staff/staff3` |
 | 시스템 관리 | `/admin` |
 
-**총괄 (operator_manager)**
+**총괄 (operator_manager) — 이운기**
 | 페이지 | 링크 |
 |--------|------|
-| 총괄 대시보드 | `/manager` |
-| AI 트랙 7기 상세 | `/manager/tracks/track1` |
-| BE 트랙 5기 상세 | `/manager/tracks/track2` |
-| 김학관 상세 (총괄 시점) | `/manager/tracks/track1/staff/staff1` |
-| 운영매니저 상세 | `/manager/operators/op1` |
+| 본인 대시보드 | `/managers/mgr1` |
+| AI 트랙 7기 상세 | `/tracks/track1` |
+| BE 트랙 5기 상세 | `/tracks/track2` |
+| 운영매니저 이운영 | `/operators/op1` |
+| 운영매니저 김운영 | `/operators/op2` |
+| 김학관 대시보드 | `/staff/staff1` |
 | 시스템 관리 | `/admin` |
 | 트랙 생성 위저드 | `/admin/tracks/new` |
-
-### 페이지 vs 시스템 관리 분리 원칙
-
-```
-/manager   → 총괄의 "일상 업무" (대시보드, 트랙 모니터링, KPI 확인)
-/operator  → 운영의 "일상 업무" (학관 관리, 이슈 처리, 칸반)
-/admin     → "시스템 설정" (트랙 생성, 알림 정책, 인원 관리 등)
-/          → 학관의 "일상 업무" (Task 수행, 이슈 작성, 공지 확인)
-```
-
-`/admin`은 역할이 아닌 **기능 범주**(설정/생성)로 분리한 영역.
 
 ### 글로벌 사이드바
 
@@ -696,10 +678,10 @@ flowchart TD
 
 ```
 ┌─────────────────────────────────────────────────┐
-│ [DEBUG 역할 전환 바] (dev only)                   │
+│ [DEBUG 역할 전환 바]                               │
 ├────────────┬────────────────────────────────────┤
 │ [사이드바]  │  [페이지 콘텐츠]                     │
-│ 220px      │  flex-1                            │
+│ 200px      │  flex-1                            │
 │            │  각 페이지가 자체 헤더 + 본문 관리     │
 └────────────┴────────────────────────────────────┘
 ```
@@ -708,32 +690,32 @@ flowchart TD
 
 | 구역 | 메뉴 | 이동 경로 |
 |------|------|----------|
-| 상단 | 대시보드 | `/manager` |
-| 담당 트랙 | AI 트랙 7기, BE 트랙 5기, ... | `/manager/tracks/{id}` |
-| 운영매니저 | 이운영, 김운영, ... | `/manager/operators/{id}` |
+| 상단 | 대시보드 | `/managers/mgr1` |
+| 담당 트랙 | AI 트랙 7기 | `/tracks/track1` |
+| └ 운영매 | 이운영 | `/operators/op1` |
+| └ 학관 (토글) | 김학관, 이학관, 박학관 | `/staff/{staffId}` |
 | 하단 | 시스템 관리 | `/admin` |
 
 #### 운영 (operator) 사이드바
 
 | 구역 | 메뉴 | 이동 경로 |
 |------|------|----------|
-| 상단 | 대시보드 | `/operator` |
-| 담당 트랙 | AI 트랙 7기 (펼침/접기) | `/operator/tracks/{id}` |
-|  | └ 김학관, 이학관, 박학관 | `/operator/tracks/{id}/staff/{staffId}` |
+| 상단 | 대시보드 | `/operators/op1` |
+| 담당 트랙 | AI 트랙 7기 | `/tracks/track1` |
+| └ 학관 | 김학관, 이학관, 박학관 | `/staff/{staffId}` |
 | 하단 | 시스템 관리 | `/admin` |
 
 #### 학관 (learning_manager) 사이드바
 
 | 구역 | 메뉴 | 이동 경로 |
 |------|------|----------|
-| 상단 | 오늘 할 일 | `/` |
-|  | 면담 관리 | `/?tab=interview` |
+| 상단 | 오늘 할 일 | `/staff/staff1` |
+|  | 면담 관리 | `/staff/staff1?tab=interview` |
 
 #### Debug 역할 전환 바
 
 - `components/layout/debug-role-switcher.tsx`
-- **dev 환경에서만 표시** (`process.env.NODE_ENV !== 'production'`)
-- 총괄 / 운영 / 학관 버튼 → 클릭 시 역할 전환 + 해당 역할 홈으로 이동
+- 총괄 / 운영 / 학관 버튼 → 클릭 시 역할 전환 + 루트(`/`)로 이동 → 자동 리다이렉트
 - 역할 상태: `lib/role-store.ts` (Zustand)
 
 ### 컴포넌트 디렉토리 매핑
@@ -741,9 +723,9 @@ flowchart TD
 | 디렉토리 | 대응 라우트 | 설명 |
 |----------|-----------|------|
 | `components/layout/` | 전체 | AppShell, AppSidebar, DebugRoleSwitcher |
-| `components/manager/` | `/manager` | 총괄 대시보드 컴포넌트 (ManagerDashboardHome, ManagerSidebar 등) |
-| `components/operator/` | `/operator` | 운영 대시보드 컴포넌트 |
-| `components/dashboard/` | `/` | 학관 대시보드 컴포넌트 |
+| `components/manager/` | `/managers/[id]` | 총괄 대시보드 컴포넌트 |
+| `components/operator/` | `/operators/[id]`, `/tracks/[id]` | 운영 대시보드 + 트랙 상세 컴포넌트 |
+| `components/dashboard/` | `/staff/[id]` | 학관 대시보드 컴포넌트 |
 | `components/track-creation/` | `/admin/tracks/new` | 트랙 생성 위저드 컴포넌트 |
 
 > **공유 컴포넌트**: `NotificationDropdown`, `KanbanBoard`, `PlannerTrackCards`, `OperatorChatSection`은

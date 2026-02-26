@@ -287,17 +287,17 @@ export function StaffDetailPage({ trackId, staffId }: { trackId: string; staffId
       <header className="flex h-[60px] shrink-0 items-center justify-between border-b border-border bg-card px-6">
         <div className="flex items-center gap-2">
           <Link
-            href={`/manager/tracks/${trackId}`}
+            href={`/tracks/${trackId}`}
             className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             aria-label="뒤로가기"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <Link href="/manager" className="text-sm text-muted-foreground hover:underline">
-            {'관리자'}
+          <Link href="/" className="text-sm text-muted-foreground hover:underline">
+            {'홈'}
           </Link>
           <span className="text-sm text-muted-foreground">{'>'}</span>
-          <Link href={`/manager/tracks/${trackId}`} className="text-sm text-muted-foreground hover:underline">
+          <Link href={`/tracks/${trackId}`} className="text-sm text-muted-foreground hover:underline">
             {track.name}
           </Link>
           <span className="text-sm text-muted-foreground">{'>'}</span>

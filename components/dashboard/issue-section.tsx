@@ -16,7 +16,7 @@ function formatTimeAgo(timestamp: string, now: number): string {
   return `${days}일 전`
 }
 
-export function IssueSection() {
+export function IssueSection({ staffId }: { staffId?: string }) {
   const { issues, addIssue, addIssueReply } = useDashboardStore()
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')

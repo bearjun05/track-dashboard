@@ -361,6 +361,7 @@ export interface PlannerTrackCard {
   studentCount: number
   tutorCount: number
   operator?: {
+    id: string
     name: string
     taskCompletionRate: number
     taskCompleted: number
@@ -880,6 +881,7 @@ export const mockPlannerTracks: PlannerTrackCard[] = [
     studentCount: 70,
     tutorCount: 2,
     operator: {
+      id: 'op1',
       name: '이운영',
       taskCompletionRate: 85,
       taskCompleted: 17,
@@ -905,6 +907,7 @@ export const mockPlannerTracks: PlannerTrackCard[] = [
     studentCount: 50,
     tutorCount: 1,
     operator: {
+      id: 'op2',
       name: '김운영',
       taskCompletionRate: 90,
       taskCompleted: 18,
@@ -1097,7 +1100,7 @@ export const mockTrackTasks: TrackTask[] = [
   { id: 'tt117', title: '출석 체크', type: 'daily', trackId: 'track1', assigneeId: 'staff3', assigneeName: '박학관', status: 'pending', scheduledDate: '2026-02-20', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
   { id: 'tt118', title: '오후 팀순회', type: 'daily', trackId: 'track1', assigneeId: 'staff3', assigneeName: '박학관', status: 'pending', scheduledDate: '2026-02-20', scheduledTime: '14:00', dueTime: '15:00', messages: [] },
   { id: 'tt119', title: '중간평가 준비', type: 'milestone', completionType: 'evidence', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: '2026-02-20', endDate: '2026-02-21', scheduledTime: '09:00', dueTime: '18:00', messages: [] },
-  { id: 'tt120', title: '학습자료 배포', type: 'milestone', completionType: 'check', trackId: 'track1', assigneeId: 'staff2', assigneeName: '이학관', status: 'pending', scheduledDate: '2026-02-20', scheduledTime: '13:00', dueTime: '14:00', messages: [] },
+  { id: 'tt120', title: '학습자료 배포', type: 'milestone', completionType: 'simple', trackId: 'track1', assigneeId: 'staff2', assigneeName: '이학관', status: 'pending', scheduledDate: '2026-02-20', scheduledTime: '13:00', dueTime: '14:00', messages: [] },
 ]
 
 // -- Track Notices (공지) --
@@ -1221,22 +1224,22 @@ export const mockChapters: ChapterInfo[] = [
 // -- Notifications --
 
 export const mockNotifications: AppNotification[] = [
-  { id: 'noti1', type: 'task_overdue', category: 'system', title: '기한초과: 오전 팀순회', description: '이학관 - AI 트랙 7기, 11:00 마감', timestamp: '2026-02-11 11:05', isRead: false, isMandatory: true, linkTo: '/operator/tracks/track1', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt7', relatedStaffId: 'staff2', isEscalatedAway: true },
-  { id: 'noti2', type: 'task_overdue', category: 'system', title: '기한초과: 오후 팀순회', description: '박학관 - AI 트랙 7기, 15:00 마감', timestamp: '2026-02-11 15:05', isRead: false, isMandatory: true, linkTo: '/operator/tracks/track1', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt13', relatedStaffId: 'staff3' },
-  { id: 'noti3', type: 'task_unassigned', category: 'system', title: '미배정 Task 알림', description: 'AI 트랙 7기 - 미배정 Task 2건', timestamp: '2026-02-11 11:30', isRead: false, isMandatory: true, linkTo: '/operator/tracks/track1#unassigned', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt16' },
-  { id: 'noti4', type: 'vacation_registered', category: 'action', title: '휴가 등록: 박학관', description: '박학관 휴가(2/16~17) - 6건 미배정 발생', timestamp: '2026-02-11 09:00', isRead: false, isMandatory: true, linkTo: '/operator/tracks/track1/staff/staff3', recipientRole: 'operator', relatedTrackId: 'track1', relatedStaffId: 'staff3' },
-  { id: 'noti5', type: 'issue_urgent', category: 'action', title: '긴급 이슈: 교육장 에어컨 고장', description: '김학관 - AI 트랙 7기', timestamp: '2026-02-10 08:30', isRead: true, isMandatory: true, linkTo: '/manager/tracks/track1/staff/staff1#issues', recipientRole: 'operator_manager', relatedTrackId: 'track1', relatedStaffId: 'staff1' },
-  { id: 'noti6', type: 'issue_new', category: 'action', title: '새 이슈: 교육 자료 요청', description: '이학관 - AI 트랙 7기', timestamp: '2026-02-10 05:00', isRead: true, isMandatory: true, linkTo: '/operator/tracks/track1/staff/staff2#issues', recipientRole: 'operator', relatedTrackId: 'track1', relatedStaffId: 'staff2', isEscalatedAway: true },
-  { id: 'noti7', type: 'message_new', category: 'action', title: '새 메시지: 김학관', description: '1팀 김철수 학생 추가 상담 필요합니다.', timestamp: '2026-02-11 10:30', isRead: false, isMandatory: true, linkTo: '/operator/tracks/track1/staff/staff1', recipientRole: 'operator', relatedTrackId: 'track1', relatedStaffId: 'staff1' },
-  { id: 'noti8', type: 'message_new', category: 'action', title: '새 메시지: 박학관', description: '죄송합니다. 학생 이슈 대응하느라 늦었습니다.', timestamp: '2026-02-11 11:20', isRead: true, isMandatory: true, linkTo: '/operator/tracks/track1/staff/staff3', recipientRole: 'operator', relatedTrackId: 'track1', relatedStaffId: 'staff3' },
-  { id: 'noti9', type: 'task_completed', category: 'action', title: 'Task 완료: 출석 체크', description: '김학관 - AI 트랙 7기, 09:25 완료', timestamp: '2026-02-11 09:25', isRead: true, isMandatory: false, linkTo: '/operator/tracks/track1/staff/staff1', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt1', relatedStaffId: 'staff1' },
-  { id: 'noti10', type: 'task_completed', category: 'action', title: 'Task 완료: 수강생 출결 리포트', description: '김학관 - AI 트랙 7기, 11:40 완료', timestamp: '2026-02-11 11:40', isRead: true, isMandatory: false, linkTo: '/operator/tracks/track1/staff/staff1', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt5', relatedStaffId: 'staff1' },
-  { id: 'noti11', type: 'task_overdue', category: 'system', title: '기한초과: 수강생 진도 체크', description: '한학관 - BE 트랙 5기, 12:00 마감', timestamp: '2026-02-11 12:05', isRead: false, isMandatory: true, linkTo: '/operator/tracks/track2', recipientRole: 'operator', relatedTrackId: 'track2', relatedTaskId: 'tt26', relatedStaffId: 'staff4' },
-  { id: 'noti12', type: 'task_completed', category: 'action', title: 'Task 완료: 오전 팀순회', description: '정학관 - BE 트랙 5기, 10:50 완료', timestamp: '2026-02-11 10:50', isRead: true, isMandatory: false, linkTo: '/operator/tracks/track2/staff/staff5', recipientRole: 'operator', relatedTrackId: 'track2', relatedTaskId: 'tt20', relatedStaffId: 'staff5' },
-  { id: 'noti13', type: 'task_assigned', category: 'action', title: 'Task 배정: 특별 멘토링 세션 준비', description: '김학관에게 배정 - AI 트랙 7기', timestamp: '2026-02-11 08:30', isRead: true, isMandatory: true, linkTo: '/', recipientRole: 'learning_manager', relatedTrackId: 'track1', relatedTaskId: 'tt16', relatedStaffId: 'staff1' },
-  { id: 'noti14', type: 'notice_new', category: 'action', title: '새 공지: 2월 셋째주 일정 안내', description: '운영매니저 → 전체 학관', timestamp: '2026-02-11 09:00', isRead: true, isMandatory: true, linkTo: '/', recipientRole: 'learning_manager', relatedTrackId: 'track1' },
-  { id: 'noti15', type: 'task_overdue', category: 'system', title: '[에스컬레이션] 기한초과: 오전 팀순회', description: '이학관 - AI 트랙 7기 (운영 미처리 4h 경과)', timestamp: '2026-02-11 15:05', isRead: false, isMandatory: true, linkTo: '/operator/tracks/track1', recipientRole: 'operator_manager', relatedTrackId: 'track1', relatedTaskId: 'tt7', relatedStaffId: 'staff2', escalation: { isEscalated: true, originalRecipientRole: 'operator', escalatedAt: '2026-02-11 15:05' } },
-  { id: 'noti16', type: 'issue_new', category: 'action', title: '[에스컬레이션] 이슈 미처리: 교육 자료 요청', description: '이학관 - AI 트랙 7기 (운영 미처리 8h 경과)', timestamp: '2026-02-11 13:00', isRead: false, isMandatory: true, linkTo: '/operator/tracks/track1', recipientRole: 'operator_manager', relatedTrackId: 'track1', relatedStaffId: 'staff2', escalation: { isEscalated: true, originalRecipientRole: 'operator', escalatedAt: '2026-02-11 13:00' } },
+  { id: 'noti1', type: 'task_overdue', category: 'system', title: '기한초과: 오전 팀순회', description: '이학관 - AI 트랙 7기, 11:00 마감', timestamp: '2026-02-11 11:05', isRead: false, isMandatory: true, linkTo: '/tracks/track1', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt7', relatedStaffId: 'staff2', isEscalatedAway: true },
+  { id: 'noti2', type: 'task_overdue', category: 'system', title: '기한초과: 오후 팀순회', description: '박학관 - AI 트랙 7기, 15:00 마감', timestamp: '2026-02-11 15:05', isRead: false, isMandatory: true, linkTo: '/tracks/track1', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt13', relatedStaffId: 'staff3' },
+  { id: 'noti3', type: 'task_unassigned', category: 'system', title: '미배정 Task 알림', description: 'AI 트랙 7기 - 미배정 Task 2건', timestamp: '2026-02-11 11:30', isRead: false, isMandatory: true, linkTo: '/tracks/track1#unassigned', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt16' },
+  { id: 'noti4', type: 'vacation_registered', category: 'action', title: '휴가 등록: 박학관', description: '박학관 휴가(2/16~17) - 6건 미배정 발생', timestamp: '2026-02-11 09:00', isRead: false, isMandatory: true, linkTo: '/staff/staff3', recipientRole: 'operator', relatedTrackId: 'track1', relatedStaffId: 'staff3' },
+  { id: 'noti5', type: 'issue_urgent', category: 'action', title: '긴급 이슈: 교육장 에어컨 고장', description: '김학관 - AI 트랙 7기', timestamp: '2026-02-10 08:30', isRead: true, isMandatory: true, linkTo: '/staff/staff1#issues', recipientRole: 'operator_manager', relatedTrackId: 'track1', relatedStaffId: 'staff1' },
+  { id: 'noti6', type: 'issue_new', category: 'action', title: '새 이슈: 교육 자료 요청', description: '이학관 - AI 트랙 7기', timestamp: '2026-02-10 05:00', isRead: true, isMandatory: true, linkTo: '/staff/staff2#issues', recipientRole: 'operator', relatedTrackId: 'track1', relatedStaffId: 'staff2', isEscalatedAway: true },
+  { id: 'noti7', type: 'message_new', category: 'action', title: '새 메시지: 김학관', description: '1팀 김철수 학생 추가 상담 필요합니다.', timestamp: '2026-02-11 10:30', isRead: false, isMandatory: true, linkTo: '/staff/staff1', recipientRole: 'operator', relatedTrackId: 'track1', relatedStaffId: 'staff1' },
+  { id: 'noti8', type: 'message_new', category: 'action', title: '새 메시지: 박학관', description: '죄송합니다. 학생 이슈 대응하느라 늦었습니다.', timestamp: '2026-02-11 11:20', isRead: true, isMandatory: true, linkTo: '/staff/staff3', recipientRole: 'operator', relatedTrackId: 'track1', relatedStaffId: 'staff3' },
+  { id: 'noti9', type: 'task_completed', category: 'action', title: 'Task 완료: 출석 체크', description: '김학관 - AI 트랙 7기, 09:25 완료', timestamp: '2026-02-11 09:25', isRead: true, isMandatory: false, linkTo: '/staff/staff1', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt1', relatedStaffId: 'staff1' },
+  { id: 'noti10', type: 'task_completed', category: 'action', title: 'Task 완료: 수강생 출결 리포트', description: '김학관 - AI 트랙 7기, 11:40 완료', timestamp: '2026-02-11 11:40', isRead: true, isMandatory: false, linkTo: '/staff/staff1', recipientRole: 'operator', relatedTrackId: 'track1', relatedTaskId: 'tt5', relatedStaffId: 'staff1' },
+  { id: 'noti11', type: 'task_overdue', category: 'system', title: '기한초과: 수강생 진도 체크', description: '한학관 - BE 트랙 5기, 12:00 마감', timestamp: '2026-02-11 12:05', isRead: false, isMandatory: true, linkTo: '/tracks/track2', recipientRole: 'operator', relatedTrackId: 'track2', relatedTaskId: 'tt26', relatedStaffId: 'staff4' },
+  { id: 'noti12', type: 'task_completed', category: 'action', title: 'Task 완료: 오전 팀순회', description: '정학관 - BE 트랙 5기, 10:50 완료', timestamp: '2026-02-11 10:50', isRead: true, isMandatory: false, linkTo: '/staff/staff5', recipientRole: 'operator', relatedTrackId: 'track2', relatedTaskId: 'tt20', relatedStaffId: 'staff5' },
+  { id: 'noti13', type: 'task_assigned', category: 'action', title: 'Task 배정: 특별 멘토링 세션 준비', description: '김학관에게 배정 - AI 트랙 7기', timestamp: '2026-02-11 08:30', isRead: true, isMandatory: true, linkTo: '/staff/staff1', recipientRole: 'learning_manager', relatedTrackId: 'track1', relatedTaskId: 'tt16', relatedStaffId: 'staff1' },
+  { id: 'noti14', type: 'notice_new', category: 'action', title: '새 공지: 2월 셋째주 일정 안내', description: '운영매니저 → 전체 학관', timestamp: '2026-02-11 09:00', isRead: true, isMandatory: true, linkTo: '/staff/staff1', recipientRole: 'learning_manager', relatedTrackId: 'track1' },
+  { id: 'noti15', type: 'task_overdue', category: 'system', title: '[에스컬레이션] 기한초과: 오전 팀순회', description: '이학관 - AI 트랙 7기 (운영 미처리 4h 경과)', timestamp: '2026-02-11 15:05', isRead: false, isMandatory: true, linkTo: '/tracks/track1', recipientRole: 'operator_manager', relatedTrackId: 'track1', relatedTaskId: 'tt7', relatedStaffId: 'staff2', escalation: { isEscalated: true, originalRecipientRole: 'operator', escalatedAt: '2026-02-11 15:05' } },
+  { id: 'noti16', type: 'issue_new', category: 'action', title: '[에스컬레이션] 이슈 미처리: 교육 자료 요청', description: '이학관 - AI 트랙 7기 (운영 미처리 8h 경과)', timestamp: '2026-02-11 13:00', isRead: false, isMandatory: true, linkTo: '/tracks/track1', recipientRole: 'operator_manager', relatedTrackId: 'track1', relatedStaffId: 'staff2', escalation: { isEscalated: true, originalRecipientRole: 'operator', escalatedAt: '2026-02-11 13:00' } },
 ]
 
 // -- Notification Configs --

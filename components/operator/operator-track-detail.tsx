@@ -4,7 +4,6 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useAdminStore } from '@/lib/admin-store'
 import type { TrackTask, TrackTaskStatus, TaskType, TrackSchedule, TrackNotice, VacationEntry, WorkScheduleEntry, StaffCard as StaffCardType } from '@/lib/admin-mock-data'
-import { mockChapters } from '@/lib/admin-mock-data'
 import { ROLE_LABELS, ROLE_LABELS_FULL } from '@/lib/role-labels'
 
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
@@ -387,7 +386,8 @@ function ScheduleWeeklyView({ schedules, onScheduleClick }: { schedules: TrackSc
 
 // ─── Schedule Chapter View ───
 function ScheduleChapterView({ schedules, trackId, onScheduleClick }: { schedules: TrackSchedule[]; trackId: string; onScheduleClick: (s: TrackSchedule) => void }) {
-  const chapters = useMemo(() => mockChapters.filter((c) => c.trackId === trackId), [trackId])
+  const storeChapters = useAdminStore((s) => s.chapters)
+  const chapters = useMemo(() => storeChapters.filter((c) => c.trackId === trackId), [storeChapters, trackId])
   const [chapterIdx, setChapterIdx] = useState(() => {
     const idx = chapters.findIndex((c) => c.startDate <= TODAY_STR && c.endDate >= TODAY_STR)
     return idx >= 0 ? idx : 0
@@ -1128,7 +1128,8 @@ function ChapterView({ tasks, trackId, staffList, onMoveToDate, onAssignToday, o
   selectedTaskIds: Set<string>
   onToggleSelect: (id: string) => void
 }) {
-  const chapters = useMemo(() => mockChapters.filter((c) => c.trackId === trackId), [trackId])
+  const storeChapters = useAdminStore((s) => s.chapters)
+  const chapters = useMemo(() => storeChapters.filter((c) => c.trackId === trackId), [storeChapters, trackId])
   const [chapterIdx, setChapterIdx] = useState(() => {
     const idx = chapters.findIndex((c) => c.startDate <= TODAY_STR && c.endDate >= TODAY_STR)
     return idx >= 0 ? idx : 0
@@ -1540,7 +1541,7 @@ function TaskDetailModal({ task, staffList, onClose, onComplete, onReassign, onD
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
               <TypeBadge type={task.type} />
-              {task.completionType && <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px]">{task.completionType === 'check' ? '체크 완료' : '증빙 제출'}</span>}
+              {task.completionType && <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px]">{task.completionType === 'simple' ? '체크 완료' : '증빙 제출'}</span>}
             </div>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-secondary"><X className="h-4 w-4" /></button>
@@ -2398,7 +2399,7 @@ export function OperatorTrackDetail({ trackId }: { trackId: string }) {
     <div className="flex h-full flex-col bg-background">
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-6">
         <div className="flex items-center gap-2.5 text-sm">
-          <Link href="/operator" className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"><ArrowLeft className="h-4 w-4" /></Link>
+          <Link href="/" className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"><ArrowLeft className="h-4 w-4" /></Link>
           <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold" style={{ backgroundColor: `${track.color}15`, color: track.color }}>{track.name}</span>
           <span className="text-[11px] text-muted-foreground">{track.period}</span>
         </div>

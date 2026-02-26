@@ -60,6 +60,20 @@ export interface RecurrenceConfig {
 
 export type TaskScope = 'common' | 'individual'
 
+export type AssignmentMode = 'all' | 'specific' | 'rotation' | 'unassigned'
+
+export interface RotationConfig {
+  cycle: 'daily' | 'weekly'
+  staffOrder: string[]
+}
+
+export interface TaskAssignmentConfig {
+  templateId: string
+  mode: AssignmentMode
+  specificStaffId?: string
+  rotationConfig?: RotationConfig
+}
+
 export interface TaskTemplateConfig {
   id: string
   number: number
@@ -112,4 +126,5 @@ export interface TrackCreationData {
   generatedTasks: GeneratedTask[]
   recurrenceConfigs: Record<string, RecurrenceConfig>
   customTemplates: TaskTemplateConfig[]
+  taskAssignments: Record<string, TaskAssignmentConfig>
 }

@@ -6,17 +6,21 @@ import { Check, ChevronRight, Users, BookOpen, ListChecks, Calendar } from 'luci
 import { Button } from '@/components/ui/button'
 import { useAdminStore } from '@/lib/admin-store'
 import { taskTemplates, ROLE_LABELS } from '@/lib/task-templates'
-import type { TrackCreationData, DriRole } from '@/lib/track-creation-types'
+import type { TrackCreationData, DriRole, AssignmentMode } from '@/lib/track-creation-types'
 
 interface StepFinalConfirmationProps {
   data: TrackCreationData
+  mode?: 'create' | 'edit'
+  trackId?: string
 }
 
 const ROLE_ORDER: DriRole[] = ['operator_manager', 'operator', 'learning_manager']
 
-export function StepFinalConfirmation({ data }: StepFinalConfirmationProps) {
+export function StepFinalConfirmation({ data, mode = 'create', trackId }: StepFinalConfirmationProps) {
   const router = useRouter()
   const createTrack = useAdminStore(s => s.createTrack)
+  const updateTrack = useAdminStore(s => s.updateTrack)
+  const isEdit = mode === 'edit' && !!trackId
 
   const allStaff = useMemo(() => [
     ...data.staff.operatorManagers,
@@ -46,10 +50,21 @@ export function StepFinalConfirmation({ data }: StepFinalConfirmationProps) {
     return { total: allTemplates.length, byRole, recurring, track, custom: data.customTemplates.length }
   }, [allTemplates, data.customTemplates])
 
+  const assignStats = useMemo(() => {
+    const counts: Record<AssignmentMode, number> = { all: 0, specific: 0, rotation: 0, unassigned: 0 }
+    for (const tpl of allTemplates) {
+      const mode = data.taskAssignments[tpl.id]?.mode ?? 'unassigned'
+      counts[mode]++
+    }
+    const instances = data.generatedTasks.filter(t => t.status !== 'deferred')
+    const assignedInstances = instances.filter(t => t.assigneeId).length
+    return { ...counts, totalInstances: instances.length, assignedInstances }
+  }, [allTemplates, data.taskAssignments, data.generatedTasks])
+
   const maxRoleCount = Math.max(...ROLE_ORDER.map(r => taskStats.byRole[r] || 0), 1)
 
-  const handleCreate = () => {
-    createTrack({
+  const handleSubmit = () => {
+    const payload = {
       name: data.name,
       round: data.round,
       trackStart: data.parsedSchedule?.trackStart || '',
@@ -57,8 +72,13 @@ export function StepFinalConfirmation({ data }: StepFinalConfirmationProps) {
       chapters: data.chapters,
       staff: data.staff,
       tasks: data.generatedTasks,
-    })
-    router.push('/manager')
+    }
+    if (isEdit) {
+      updateTrack(trackId, payload)
+    } else {
+      createTrack(payload)
+    }
+    router.push('/managers/mgr1')
   }
 
   const staffByRole = [
@@ -75,6 +95,9 @@ export function StepFinalConfirmation({ data }: StepFinalConfirmationProps) {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-foreground/[0.06]">
           <Check className="h-6 w-6 text-foreground" />
         </div>
+        {isEdit && (
+          <p className="mt-3 text-[11px] font-medium text-primary">트랙 수정 최종 확인</p>
+        )}
         <h2 className="mt-4 text-xl font-bold">{data.name} · {data.round}회차</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {data.parsedSchedule?.trackStart} ~ {data.parsedSchedule?.trackEnd}
@@ -96,8 +119,8 @@ export function StepFinalConfirmation({ data }: StepFinalConfirmationProps) {
         </div>
         <div className="p-4 text-center">
           <ListChecks className="mx-auto h-4 w-4 text-muted-foreground" />
-          <p className="mt-2 text-2xl font-bold">{taskStats.total}</p>
-          <p className="text-[10px] text-muted-foreground">Task 템플릿</p>
+          <p className="mt-2 text-2xl font-bold">{assignStats.totalInstances.toLocaleString()}</p>
+          <p className="text-[10px] text-muted-foreground">Task 인스턴스 · {taskStats.total}개 템플릿</p>
         </div>
       </div>
 
@@ -168,24 +191,33 @@ export function StepFinalConfirmation({ data }: StepFinalConfirmationProps) {
               )
             })}
           </div>
-          {/* Right: type breakdown */}
+          {/* Right: assignment summary */}
           <div className="space-y-2">
-            <p className="text-[10px] font-medium text-muted-foreground">유형별 구성</p>
+            <p className="text-[10px] font-medium text-muted-foreground">배정 현황</p>
             <div className="grid grid-cols-2 gap-2">
-              <StatBox label="반복 일정" value={taskStats.recurring} />
-              <StatBox label="트랙 일정" value={taskStats.track} />
-              <StatBox label="직접 추가" value={taskStats.custom} />
-              <StatBox label="전체" value={taskStats.total} />
+              <StatBox label="전원" value={assignStats.all} />
+              <StatBox label="지정" value={assignStats.specific} />
+              <StatBox label="순환" value={assignStats.rotation} />
+              <StatBox label="미지정" value={assignStats.unassigned} />
             </div>
+            {assignStats.unassigned > 0 && (
+              <p className="text-[9px] text-muted-foreground/60">
+                미지정 Task는 트랙 운영 중 운영매니저가 배정합니다
+              </p>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Create button */}
+      {/* Submit button */}
       <div className="rounded-xl border border-border bg-foreground/[0.02] p-6 text-center">
-        <p className="text-sm text-muted-foreground">위 내용으로 트랙을 생성합니다. 생성 후에도 수정 가능합니다.</p>
-        <Button size="lg" onClick={handleCreate} className="mt-4 px-10">
-          트랙 생성 확정
+        <p className="text-sm text-muted-foreground">
+          {isEdit
+            ? '변경된 내용으로 트랙을 업데이트합니다.'
+            : '위 내용으로 트랙을 생성합니다. 생성 후에도 수정 가능합니다.'}
+        </p>
+        <Button size="lg" onClick={handleSubmit} className="mt-4 px-10">
+          {isEdit ? '트랙 수정 확정' : '트랙 생성 확정'}
         </Button>
       </div>
     </div>

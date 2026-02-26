@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { mockCalendarEvents, mockChapterEvents, mockTodayTasks } from '@/lib/mock-data'
-import type { CalendarEvent } from '@/lib/types'
+import { useStaffDashboard } from '@/lib/hooks/use-staff-dashboard'
+import { trackTaskToTask } from '@/lib/hooks/track-task-adapter'
+import type { CalendarEvent, Task } from '@/lib/types'
 import { Calendar, ChevronRight, X, Plus } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 
@@ -164,11 +166,21 @@ function DateModal({ date, events, onClose }: DateModalProps) {
   )
 }
 
-export function WeekChapterCalendar() {
+export function WeekChapterCalendar({ staffId }: { staffId?: string }) {
   const [view, setView] = useState<'week' | 'chapter'>('week')
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
-  // Use the same pinned date as mock-data.ts so that event dates align with "today"
+  const staffData = useStaffDashboard(staffId ?? '')
+  const calendarEvents = useMemo(() => {
+    if (!staffId) return mockCalendarEvents
+    return staffData.trackSchedules.map(s => ({
+      id: s.id,
+      title: s.title,
+      date: s.startDate,
+      category: 'general' as const,
+    }))
+  }, [staffId, staffData.trackSchedules])
+
   const safeToday = new Date(2026, 1, 11, 9, 0, 0)
   const weekDays = Array.from({ length: 5 }, (_, i) => addDays(safeToday, i))
 

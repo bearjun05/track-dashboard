@@ -1,5 +1,8 @@
 import { addDays, addWeeks, addMonths, format, parseISO, eachWeekOfInterval, eachDayOfInterval, isWeekend, startOfMonth } from 'date-fns'
-import type { Chapter, GeneratedTask, RecurrenceConfig, TaskTemplateConfig } from './track-creation-types'
+import type {
+  Chapter, GeneratedTask, RecurrenceConfig, TaskTemplateConfig,
+  AssignmentMode, TaskAssignmentConfig, StaffMember, RotationConfig,
+} from './track-creation-types'
 import { taskTemplates } from './task-templates'
 
 let idCounter = 0
@@ -274,4 +277,163 @@ function createRecurringTasks(
   }
 
   return tasks
+}
+
+/**
+ * Task 특성에 따라 기본 배정 모드를 제안한다.
+ * TASK_SYSTEM_POLICY.md 섹션 6 "기본값" 기준.
+ */
+export function suggestDefaultAssignments(
+  learningManagers: StaffMember[],
+): Record<string, TaskAssignmentConfig> {
+  const assignments: Record<string, TaskAssignmentConfig> = {}
+  const lmIds = learningManagers.map(lm => lm.id)
+
+  for (const tpl of taskTemplates) {
+    let mode: AssignmentMode = 'unassigned'
+    let rotationConfig: RotationConfig | undefined
+
+    if (tpl.driRole === 'learning_manager') {
+      switch (tpl.frequency) {
+        case 'daily':
+          if (tpl.priority === 'high' || tpl.priority === 'medium') {
+            mode = 'all'
+          } else {
+            mode = 'rotation'
+            rotationConfig = { cycle: 'daily', staffOrder: [...lmIds] }
+          }
+          break
+        case 'weekly':
+          mode = 'rotation'
+          rotationConfig = { cycle: 'weekly', staffOrder: [...lmIds] }
+          break
+        case 'per_chapter':
+          mode = lmIds.length > 0 ? 'specific' : 'unassigned'
+          break
+        case 'once':
+          mode = lmIds.length > 0 ? 'specific' : 'unassigned'
+          break
+        default:
+          mode = 'unassigned'
+      }
+    }
+
+    assignments[tpl.id] = {
+      templateId: tpl.id,
+      mode,
+      specificStaffId: mode === 'specific' && lmIds.length > 0 ? lmIds[0] : undefined,
+      rotationConfig,
+    }
+  }
+
+  return assignments
+}
+
+/**
+ * Step 6에서 설정한 배정을 generatedTasks에 적용한다.
+ * - all: 학관매 수만큼 Task 복제, 각각 assigneeId 설정
+ * - specific: 지정된 스태프 ID로 assigneeId 설정
+ * - rotation: round-robin으로 assigneeId 순환 배정
+ * - unassigned: 변경 없음
+ */
+export function applyAssignments(
+  tasks: GeneratedTask[],
+  assignments: Record<string, TaskAssignmentConfig>,
+  staff: StaffMember[],
+): GeneratedTask[] {
+  const staffMap = new Map(staff.map(s => [s.id, s]))
+  const result: GeneratedTask[] = []
+  let dupCounter = 0
+
+  const tasksByTemplate = new Map<string, GeneratedTask[]>()
+  for (const task of tasks) {
+    const list = tasksByTemplate.get(task.templateId) || []
+    list.push(task)
+    tasksByTemplate.set(task.templateId, list)
+  }
+
+  for (const [templateId, templateTasks] of tasksByTemplate) {
+    const config = assignments[templateId]
+
+    if (!config || config.mode === 'unassigned') {
+      result.push(...templateTasks)
+      continue
+    }
+
+    switch (config.mode) {
+      case 'all': {
+        for (const task of templateTasks) {
+          for (const s of staff) {
+            result.push({
+              ...task,
+              id: `${task.id}-dup-${++dupCounter}`,
+              assigneeId: s.id,
+              assigneeName: s.name,
+              status: 'pending',
+            })
+          }
+        }
+        break
+      }
+
+      case 'specific': {
+        const s = config.specificStaffId ? staffMap.get(config.specificStaffId) : undefined
+        for (const task of templateTasks) {
+          result.push({
+            ...task,
+            assigneeId: s?.id,
+            assigneeName: s?.name,
+            status: s ? 'pending' : 'unassigned',
+          })
+        }
+        break
+      }
+
+      case 'rotation': {
+        const order = config.rotationConfig?.staffOrder ?? []
+        if (order.length === 0) {
+          result.push(...templateTasks)
+          break
+        }
+
+        const sorted = [...templateTasks].sort((a, b) =>
+          a.scheduledDate.localeCompare(b.scheduledDate)
+        )
+
+        if (config.rotationConfig?.cycle === 'weekly') {
+          let weekIdx = 0
+          let prevWeek = ''
+          for (const task of sorted) {
+            const weekKey = task.scheduledDate.substring(0, 8)
+            if (weekKey !== prevWeek) {
+              if (prevWeek) weekIdx++
+              prevWeek = weekKey
+            }
+            const staffId = order[weekIdx % order.length]
+            const s = staffMap.get(staffId)
+            result.push({
+              ...task,
+              assigneeId: s?.id,
+              assigneeName: s?.name,
+              status: s ? 'pending' : 'unassigned',
+            })
+          }
+        } else {
+          for (let i = 0; i < sorted.length; i++) {
+            const staffId = order[i % order.length]
+            const s = staffMap.get(staffId)
+            result.push({
+              ...sorted[i],
+              assigneeId: s?.id,
+              assigneeName: s?.name,
+              status: s ? 'pending' : 'unassigned',
+            })
+          }
+        }
+        break
+      }
+    }
+  }
+
+  return result.sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))
 }

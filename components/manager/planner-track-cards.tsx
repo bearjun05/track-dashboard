@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useAdminStore } from '@/lib/admin-store'
+import type { PlannerTrackCard } from '@/lib/admin-mock-data'
 import { ROLE_LABELS } from '@/lib/role-labels'
 import { Users, GraduationCap, BookOpen, Info, ChevronRight } from 'lucide-react'
 import {
@@ -24,8 +25,13 @@ function MiniProgress({ value, color }: { value: number; color?: string }) {
   )
 }
 
-export function PlannerTrackCards({ basePath = '/manager' }: { basePath?: string }) {
+export function PlannerTrackCards({
+  tracks: tracksProp,
+}: {
+  tracks?: PlannerTrackCard[]
+}) {
   const { plannerTracks } = useAdminStore()
+  const tracks = tracksProp ?? plannerTracks
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -33,16 +39,16 @@ export function PlannerTrackCards({ basePath = '/manager' }: { basePath?: string
         <h2 className="mb-3 text-base font-semibold text-foreground">
           {'담당 트랙'}{' '}
           <span className="font-normal text-muted-foreground">
-            {plannerTracks.length}{'개'}
+            {tracks.length}{'개'}
           </span>
         </h2>
 
         <div className="space-y-2.5">
-          {plannerTracks.map((track) => {
+          {tracks.map((track) => {
             return (
               <Link
                 key={track.id}
-                href={`${basePath}/tracks/${track.id}`}
+                href={`/tracks/${track.id}`}
                 className="group flex overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-foreground/15 hover:shadow-sm"
               >
                 {/* ====== 왼쪽 60%: 트랙 정보 ====== */}
@@ -120,7 +126,7 @@ export function PlannerTrackCards({ basePath = '/manager' }: { basePath?: string
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-medium text-muted-foreground">{ROLE_LABELS.operator}</span>
                       <Link
-                        href={`/operator/tracks/${track.id}`}
+                        href={`/tracks/${track.id}`}
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                       >

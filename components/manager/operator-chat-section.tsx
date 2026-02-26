@@ -217,7 +217,7 @@ export function OperatorChatSection() {
         </label>
       </div>
 
-      <div className="flex overflow-hidden rounded-xl border border-border" style={{ height: '520px' }}>
+      <div className="flex overflow-hidden rounded-xl border border-border" style={{ minHeight: '420px', height: 'calc(100vh - 320px)' }}>
         {/* 1열: 기수 */}
         <div className="flex w-[130px] shrink-0 flex-col border-r border-border bg-card">
           <div className={HEADER_CLS}><span className="text-[13px] font-medium text-foreground">{'기수'}</span></div>

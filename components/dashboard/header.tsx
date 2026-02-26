@@ -173,7 +173,7 @@ export function DashboardHeader({ currentPage, onPageChange }: HeaderProps) {
 
         {/* Admin link */}
         <Link
-          href="/manager"
+          href="/managers/mgr1"
           className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-card px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
         >
           <Shield className="h-3.5 w-3.5" />

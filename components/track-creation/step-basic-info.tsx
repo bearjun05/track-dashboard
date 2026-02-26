@@ -17,6 +17,11 @@ export function StepBasicInfo({ data, updateData }: StepBasicInfoProps) {
         <CardHeader>
           <CardTitle>트랙 기본 정보</CardTitle>
           <CardDescription>생성할 트랙의 이름과 회차를 입력하세요.</CardDescription>
+          <div className="mt-2 rounded-lg bg-muted/50 px-3 py-2.5">
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
+              실수해도 괜찮아요! 언제든 이전 단계로 돌아갈 수 있고, 트랙을 다 만든 뒤에도 <span className="font-medium text-foreground/80">트랙 수정</span>에서 얼마든지 다시 바꿀 수 있어요.
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">

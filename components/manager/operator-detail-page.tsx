@@ -36,7 +36,7 @@ export function OperatorDetailPage({ operatorId }: { operatorId: string }) {
       <header className="flex h-[60px] shrink-0 items-center justify-between border-b border-border bg-card px-6">
         <div className="flex items-center gap-3">
           <Link
-            href="/manager"
+            href="/managers/mgr1"
             className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             aria-label="뒤로가기"
           >
@@ -155,7 +155,7 @@ export function OperatorDetailPage({ operatorId }: { operatorId: string }) {
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-foreground">{staff.name}</h3>
                       <Link
-                        href={`/manager/tracks/${trackDetail.trackId}`}
+                        href={`/tracks/${trackDetail.trackId}`}
                         className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
                       >
                         {'상세보기'}

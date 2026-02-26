@@ -1,6 +1,9 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useDashboardStore } from '@/lib/store'
+import { useStaffDashboard } from '@/lib/hooks/use-staff-dashboard'
+import { trackTaskToTask } from '@/lib/hooks/track-task-adapter'
 import { TaskCard } from './task-card'
 import type { Task } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -20,8 +23,15 @@ function groupTasksByHour(tasks: Task[]): Record<number, Task[]> {
   return groups
 }
 
-export function TimePanel() {
-  const { timedTasks } = useDashboardStore()
+export function TimePanel({ staffId }: { staffId?: string }) {
+  const legacyStore = useDashboardStore()
+  const staffData = useStaffDashboard(staffId ?? '')
+
+  const timedTasks = useMemo(() => {
+    if (staffId) return staffData.timedTasks.map(trackTaskToTask)
+    return legacyStore.timedTasks
+  }, [staffId, staffData.timedTasks, legacyStore.timedTasks])
+
   const grouped = groupTasksByHour(timedTasks)
   const [currentHour, setCurrentHour] = useState(-1)
 

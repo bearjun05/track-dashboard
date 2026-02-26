@@ -49,6 +49,7 @@ import {
   mockTrackSchedules,
   mockTrackNotices,
   mockNotificationConfigs,
+  mockChapters,
   NOTIFICATION_TYPE_CONFIG,
 } from './admin-mock-data'
 
@@ -62,6 +63,7 @@ interface AdminState {
   staffTasks: StaffTask[]
   operatorTasks: Record<string, OperatorTask[]>
   operatorTrackDetails: Record<string, OperatorTrackDetail[]>
+  chapters: ChapterInfo[]
   userRole: 'operator_manager' | 'operator'
 
   // Kanban
@@ -94,6 +96,7 @@ interface AdminState {
   removeTrackNotice: (id: string) => void
   addTrackNoticeReply: (noticeId: string, content: string) => void
   extendTrackNotice: (noticeId: string, newExpiresAt: string) => void
+  markNoticeRead: (noticeId: string, userId: string) => void
 
   // Notifications
   notifications: AppNotification[]
@@ -134,7 +137,7 @@ interface AdminState {
   updateStaffMemo: (staffId: string, memo: string) => void
   removeStaffVacation: (staffId: string, vacationId: string) => void
 
-  // Track Creation
+  // Track Creation / Edit
   createTrack: (data: {
     name: string
     round: number
@@ -144,6 +147,16 @@ interface AdminState {
     staff: TrackStaffAssignment
     tasks: GeneratedTask[]
   }) => void
+  updateTrack: (trackId: string, data: {
+    name: string
+    round: number
+    trackStart: string
+    trackEnd: string
+    chapters: Chapter[]
+    staff: TrackStaffAssignment
+    tasks: GeneratedTask[]
+  }) => void
+  deleteTrack: (trackId: string) => void
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
@@ -155,6 +168,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   staffTasks: mockStaffTasks,
   operatorTasks: mockOperatorTasks,
   operatorTrackDetails: mockOperatorTrackDetails,
+  chapters: mockChapters,
   userRole: 'operator_manager',
 
   kanbanCards: mockKanbanCards,
@@ -247,7 +261,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       get().addNotification({
         type: 'task_completed', category: 'action', isMandatory: false, recipientRole: 'operator',
         title: `Task 완료: ${task.title}`, description: `${task.assigneeName ?? '알수없음'} - 완료 처리`,
-        linkTo: `/operator/tracks/${task.trackId}/staff/${task.assigneeId}`,
+        linkTo: `/staff/${task.assigneeId}`,
         relatedTrackId: task.trackId, relatedTaskId: taskId, relatedStaffId: task.assigneeId,
       })
     }
@@ -389,7 +403,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       get().addNotification({
         type: 'notice_replied', category: 'action', isMandatory: false, recipientRole: 'operator',
         title: '공지 답변', description: content.slice(0, 50),
-        linkTo: `/operator/tracks/${notice.trackId}#notices`, relatedTrackId: notice.trackId,
+        linkTo: `/tracks/${notice.trackId}#notices`, relatedTrackId: notice.trackId,
       })
     }
   },
@@ -398,6 +412,13 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     set((state) => ({
       trackNotices: state.trackNotices.map((n) =>
         n.id === noticeId ? { ...n, expiresAt: newExpiresAt } : n,
+      ),
+    })),
+
+  markNoticeRead: (noticeId, userId) =>
+    set((state) => ({
+      trackNotices: state.trackNotices.map((n) =>
+        n.id === noticeId && !n.readBy.includes(userId) ? { ...n, readBy: [...n.readBy, userId] } : n,
       ),
     })),
 
@@ -480,7 +501,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       get().addNotification({
         type: 'kanban_replied', category: 'action', isMandatory: false, recipientRole: 'operator',
         title: `칸반 답변: ${card.title}`, description: content.slice(0, 50),
-        linkTo: '/operator',
+        linkTo: '/operators/op1',
       })
     }
   },
@@ -509,7 +530,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     get().addNotification({
       type: 'kanban_created', category: 'action', isMandatory: true, recipientRole: 'operator',
       title: `새 칸반 카드: ${card.title}`, description: `${card.requesterName} (${card.requesterRole})`,
-      linkTo: '/operator',
+      linkTo: '/operators/op1',
     })
   },
 
@@ -701,7 +722,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     get().addNotification({
       type: 'vacation_registered', category: 'action', isMandatory: true, recipientRole: 'operator_manager',
       title: `휴가 등록: ${staffName}`, description: `${vacation.start} ~ ${vacation.end}, ${affectedTaskIds.length}건 미배정 발생`,
-      linkTo: `/manager/tracks/track1/staff/${staffId}`, relatedStaffId: staffId,
+      linkTo: `/staff/${staffId}`, relatedStaffId: staffId,
     })
     return affectedTaskIds
   },
@@ -757,8 +778,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         studentCount: 0,
         tutorCount: data.staff.tutors.length,
         operator: data.staff.operators[0] ? {
+          id: `op-${Date.now()}`,
           name: data.staff.operators[0].name,
           taskCompletionRate: 0,
+          taskCompleted: 0,
+          taskTotal: 0,
           issueResolutionRate: 0,
           issueResolved: 0,
           issueTotal: 0,
@@ -792,7 +816,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           type: (t.frequency === 'daily' ? 'daily' : t.frequency === 'once' || t.frequency === 'per_chapter' ? 'milestone' : 'manual') as TrackTask['type'],
           templateId: t.templateId,
           trackId,
-          status: 'unassigned' as TrackTaskStatus,
+          assigneeId: t.assigneeId,
+          assigneeName: t.assigneeName,
+          status: (t.assigneeId ? 'pending' : 'unassigned') as TrackTaskStatus,
           scheduledDate: t.scheduledDate,
           endDate: t.dueDate !== t.scheduledDate ? t.dueDate : undefined,
           scheduledTime: t.scheduledTime,
@@ -806,4 +832,90 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         trackTasks: [...state.trackTasks, ...newTrackTasks],
       }
     }),
+
+  updateTrack: (trackId, data) =>
+    set((state) => {
+      const existing = state.plannerTracks.find(t => t.id === trackId)
+      const trackColor = existing?.color || '#3B82F6'
+      const displayName = `${data.name} ${data.round}회차`
+
+      const updatedTrack: TrackCard = {
+        ...(state.tracks.find(t => t.id === trackId) as TrackCard),
+        name: displayName,
+        staffCount: data.staff.learningManagers.length,
+      }
+
+      const updatedPlannerTrack: PlannerTrackCard = {
+        ...(existing as PlannerTrackCard),
+        name: displayName,
+        period: `${data.trackStart} ~ ${data.trackEnd}`,
+        staffCount: data.staff.learningManagers.length,
+        tutorCount: data.staff.tutors.length,
+        operator: data.staff.operators[0] ? {
+          id: existing?.operator?.id || `op-${Date.now()}`,
+          name: data.staff.operators[0].name,
+          taskCompletionRate: existing?.operator?.taskCompletionRate || 0,
+          taskCompleted: existing?.operator?.taskCompleted || 0,
+          taskTotal: existing?.operator?.taskTotal || 0,
+          issueResolutionRate: existing?.operator?.issueResolutionRate || 0,
+          issueResolved: existing?.operator?.issueResolved || 0,
+          issueTotal: existing?.operator?.issueTotal || 0,
+        } : undefined,
+        staff: data.staff.learningManagers.map(lm => ({
+          id: lm.id,
+          name: lm.name,
+          taskCompletionRate: existing?.staff?.find(s => s.id === lm.id)?.taskCompletionRate || 0,
+        })),
+      }
+
+      const newSchedules: TrackSchedule[] = data.chapters.map((ch) => ({
+        id: `sch-${ch.id}`,
+        trackId,
+        title: ch.name,
+        startDate: ch.startDate,
+        endDate: ch.endDate,
+        source: 'system' as const,
+        category: '강의' as const,
+      }))
+
+      const newTrackTasks: TrackTask[] = data.tasks
+        .filter(t => t.status !== 'deferred')
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          type: (t.frequency === 'daily' ? 'daily' : t.frequency === 'once' || t.frequency === 'per_chapter' ? 'milestone' : 'manual') as TrackTask['type'],
+          templateId: t.templateId,
+          trackId,
+          assigneeId: t.assigneeId,
+          assigneeName: t.assigneeName,
+          status: (t.assigneeId ? 'pending' : 'unassigned') as TrackTaskStatus,
+          scheduledDate: t.scheduledDate,
+          endDate: t.dueDate !== t.scheduledDate ? t.dueDate : undefined,
+          scheduledTime: t.scheduledTime,
+          messages: [],
+        }))
+
+      return {
+        tracks: state.tracks.map(t => t.id === trackId ? updatedTrack : t),
+        plannerTracks: state.plannerTracks.map(t => t.id === trackId ? updatedPlannerTrack : t),
+        trackSchedules: [
+          ...state.trackSchedules.filter(s => s.trackId !== trackId),
+          ...newSchedules,
+        ],
+        trackTasks: [
+          ...state.trackTasks.filter(t => t.trackId !== trackId),
+          ...newTrackTasks,
+        ],
+      }
+    }),
+
+  deleteTrack: (trackId) =>
+    set((state) => ({
+      plannerTracks: state.plannerTracks.filter(t => t.id !== trackId),
+      tracks: state.tracks.filter(t => t.id !== trackId),
+      trackTasks: state.trackTasks.filter(t => t.trackId !== trackId),
+      trackSchedules: state.trackSchedules.filter(s => s.trackId !== trackId),
+      trackNotices: state.trackNotices.filter(n => n.trackId !== trackId),
+    })),
 }))
