@@ -31,6 +31,9 @@ Thumbs.db
 # Backup docs (reference only, not for production)
 docs/_backup/
 
+# Version snapshots (local reference only)
+new-version-snapshot/
+
 # v0 runtime files
 __v0_runtime_loader.js
 __v0_devtools.tsx

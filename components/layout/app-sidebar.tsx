@@ -81,11 +81,14 @@ function SectionLabel({ children, collapsed }: { children: React.ReactNode; coll
   )
 }
 
-function TrackItem({ track, pathname, collapsed, children }: {
+function TrackItem({ track, pathname, collapsed, children, memberPaths }: {
   track: { id: string; name: string; color: string; completionRate: number }
   pathname: string; collapsed: boolean; children?: React.ReactNode
+  memberPaths?: string[]
 }) {
-  const isActive = pathname.startsWith(`/tracks/${track.id}`)
+  const isTrackPath = pathname.startsWith(`/tracks/${track.id}`)
+  const isMemberPath = memberPaths?.some(p => pathname === p) ?? false
+  const isActive = isTrackPath || isMemberPath
 
   const dot = (
     <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: track.color }} />
@@ -184,36 +187,42 @@ function ManagerMenu({ collapsed }: { collapsed: boolean }) {
       />
 
       <SectionLabel collapsed={collapsed}>담당 트랙</SectionLabel>
-      {plannerTracks.map((track) => (
-        <TrackItem key={track.id} track={track} pathname={pathname} collapsed={collapsed}>
-          {track.operator && (
-            <PersonLink
-              href={`/operators/${track.operator.id}`}
-              name={track.operator.name}
-              role="운영"
-              rate={track.operator.taskCompletionRate}
-              isActive={pathname === `/operators/${track.operator.id}`}
-            />
-          )}
-          {track.staff && track.staff.length > 0 && (
-            <>
-              <div className="mx-3 my-1 flex items-center gap-1.5">
-                <Users className="h-3 w-3 text-foreground/15" />
-                <span className="text-[10px] text-foreground/25">학관 {track.staff.length}명</span>
-              </div>
-              {track.staff.map((s) => (
-                <PersonLink
-                  key={s.id}
-                  href={`/staff/${s.id}`}
-                  name={s.name}
-                  rate={s.taskCompletionRate}
-                  isActive={pathname === `/staff/${s.id}`}
-                />
-              ))}
-            </>
-          )}
-        </TrackItem>
-      ))}
+      {plannerTracks.map((track) => {
+        const memberPaths = [
+          ...(track.operator ? [`/operators/${track.operator.id}`] : []),
+          ...(track.staff?.map(s => `/staff/${s.id}`) ?? []),
+        ]
+        return (
+          <TrackItem key={track.id} track={track} pathname={pathname} collapsed={collapsed} memberPaths={memberPaths}>
+            {track.operator && (
+              <PersonLink
+                href={`/operators/${track.operator.id}`}
+                name={track.operator.name}
+                role="운영"
+                rate={track.operator.taskCompletionRate}
+                isActive={pathname === `/operators/${track.operator.id}`}
+              />
+            )}
+            {track.staff && track.staff.length > 0 && (
+              <>
+                <div className="mx-3 my-1 flex items-center gap-1.5">
+                  <Users className="h-3 w-3 text-foreground/15" />
+                  <span className="text-[10px] text-foreground/25">학관 {track.staff.length}명</span>
+                </div>
+                {track.staff.map((s) => (
+                  <PersonLink
+                    key={s.id}
+                    href={`/staff/${s.id}`}
+                    name={s.name}
+                    rate={s.taskCompletionRate}
+                    isActive={pathname === `/staff/${s.id}`}
+                  />
+                ))}
+              </>
+            )}
+          </TrackItem>
+        )
+      })}
     </>
   )
 }
@@ -234,19 +243,22 @@ function OperatorMenu({ collapsed }: { collapsed: boolean }) {
       />
 
       <SectionLabel collapsed={collapsed}>담당 트랙</SectionLabel>
-      {operatorTracks.map((track) => (
-        <TrackItem key={track.id} track={track} pathname={pathname} collapsed={collapsed}>
-          {track.staff && track.staff.map((s) => (
-            <PersonLink
-              key={s.id}
-              href={`/staff/${s.id}`}
-              name={s.name}
-              rate={s.taskCompletionRate}
-              isActive={pathname === `/staff/${s.id}`}
-            />
-          ))}
-        </TrackItem>
-      ))}
+      {operatorTracks.map((track) => {
+        const memberPaths = track.staff?.map(s => `/staff/${s.id}`) ?? []
+        return (
+          <TrackItem key={track.id} track={track} pathname={pathname} collapsed={collapsed} memberPaths={memberPaths}>
+            {track.staff && track.staff.map((s) => (
+              <PersonLink
+                key={s.id}
+                href={`/staff/${s.id}`}
+                name={s.name}
+                rate={s.taskCompletionRate}
+                isActive={pathname === `/staff/${s.id}`}
+              />
+            ))}
+          </TrackItem>
+        )
+      })}
     </>
   )
 }
