@@ -43,6 +43,27 @@ export const mockRoundChecks: TeamRoundCheck[] = [
   // Afternoon checks
   { studentId: 's2-3', date: todayStr, period: 'afternoon', progressCheck: true, specialNote: '진도 50% 미만' },
   { studentId: 's4-2', date: todayStr, period: 'afternoon', progressCheck: true, specialNote: '' },
+  // Team 2 morning
+  { studentId: 's2-1', date: todayStr, period: 'morning', isAbsent: false, healthCheck: true, specialNote: '' },
+  { studentId: 's2-5', date: todayStr, period: 'morning', isAbsent: false, healthCheck: true, specialNote: '최근 학습 의욕 상승' },
+  { studentId: 's2-6', date: todayStr, period: 'morning', isAbsent: true, healthCheck: false, specialNote: '개인 사유 결석, 사전 연락 있음' },
+  // Team 4 morning
+  { studentId: 's4-1', date: todayStr, period: 'morning', isAbsent: false, healthCheck: true, specialNote: '' },
+  { studentId: 's4-4', date: todayStr, period: 'morning', isAbsent: false, healthCheck: false, specialNote: '두통 호소, 조퇴 가능성' },
+  // Team 5 morning
+  { studentId: 's5-2', date: todayStr, period: 'morning', isAbsent: true, healthCheck: false, specialNote: '2일 연속 결석' },
+  { studentId: 's5-5', date: todayStr, period: 'morning', isAbsent: false, healthCheck: true, specialNote: '' },
+  // Team 7 morning
+  { studentId: 's7-3', date: todayStr, period: 'morning', isAbsent: false, healthCheck: true, specialNote: '프로젝트 진도 우수' },
+  // Team 8 afternoon
+  { studentId: 's8-1', date: todayStr, period: 'afternoon', progressCheck: true, specialNote: '프로젝트 진도 양호' },
+  { studentId: 's8-4', date: todayStr, period: 'afternoon', progressCheck: false, specialNote: '진도 30% 미만, 보충 필요' },
+  // Team 9 afternoon
+  { studentId: 's9-2', date: todayStr, period: 'afternoon', progressCheck: true, specialNote: '' },
+  { studentId: 's9-6', date: todayStr, period: 'afternoon', progressCheck: false, specialNote: '과제 미제출 2건' },
+  // Team 10 morning
+  { studentId: 's10-1', date: todayStr, period: 'morning', isAbsent: false, healthCheck: true, specialNote: '' },
+  { studentId: 's10-3', date: todayStr, period: 'morning', isAbsent: true, healthCheck: false, specialNote: '가족 행사, 오후 복귀 예정' },
 ]
 
 // Sample logs for some students
@@ -106,5 +127,55 @@ export const mockStudentLogs: StudentLog[] = [
     authorName: '나 (학관)',
     period: 'afternoon',
     createdAt: new Date(today.getTime() - 5400000).toISOString(),
+  },
+  {
+    id: 'log7',
+    studentId: 's2-6',
+    studentName: '서도현',
+    content: '개인 사유 결석 사전 연락 수신. 오후 복귀 어려울 수 있다고 하여 내일 출석 확인 예정.',
+    authorId: 'me',
+    authorName: '나 (학관)',
+    period: 'morning',
+    createdAt: new Date(today.getTime() - 3000000).toISOString(),
+  },
+  {
+    id: 'log8',
+    studentId: 's5-2',
+    studentName: '남지우',
+    content: '2일 연속 결석. 전화 연결되지 않아 카카오톡 메시지 발송. 보호자 연락처로 문자 발송 완료.',
+    authorId: 'me',
+    authorName: '나 (학관)',
+    period: 'morning',
+    createdAt: new Date(today.getTime() - 2400000).toISOString(),
+  },
+  {
+    id: 'log9',
+    studentId: 's4-4',
+    studentName: '양수빈',
+    content: '오전 순회 시 두통 호소. 보건실 이용 안내 후 경과 관찰 중. 심해지면 조퇴 처리 예정.',
+    authorId: 'me',
+    authorName: '나 (학관)',
+    period: 'morning',
+    createdAt: new Date(today.getTime() - 1800000).toISOString(),
+  },
+  {
+    id: 'log10',
+    studentId: 's8-4',
+    studentName: '배수연',
+    content: '프로젝트 진도 30% 미만. 기초 개념 이해 부족으로 판단되어 튜터 보충 수업 연결 예정. 학생 동의 받음.',
+    authorId: 'me',
+    authorName: '나 (학관)',
+    period: 'afternoon',
+    createdAt: new Date(today.getTime() - 1200000).toISOString(),
+  },
+  {
+    id: 'log11',
+    studentId: 's9-6',
+    studentName: '전도은',
+    content: '과제 미제출 2건 확인. 개인 면담에서 아르바이트 병행으로 시간이 부족하다고 호소. 학습 스케줄 재조정 상담 진행.',
+    authorId: 'me',
+    authorName: '나 (학관)',
+    period: 'afternoon',
+    createdAt: new Date(today.getTime() - 600000).toISOString(),
   },
 ]

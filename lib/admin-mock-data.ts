@@ -550,6 +550,62 @@ export const mockStaffCards: StaffCard[] = [
     workSchedule: [...DEFAULT_WORK_SCHEDULE],
     memo: '최근 업무 완료율 하락. 면담 필요.',
   },
+  {
+    id: 'staff4',
+    name: '정학관',
+    taskCompletionRate: 90,
+    taskCompleted: 9,
+    taskTotal: 10,
+    unreadMessages: 1,
+    isWarning: false,
+    vacationHistory: [
+      { id: 'v4', start: '2026-01-13', end: '2026-01-14', reason: '병원 진료' },
+    ],
+    workSchedule: [...DEFAULT_WORK_SCHEDULE],
+    memo: 'BE 트랙 5기 메인 학관. 꼼꼼하고 성실함.',
+  },
+  {
+    id: 'staff5',
+    name: '한학관',
+    taskCompletionRate: 85,
+    taskCompleted: 8,
+    taskTotal: 10,
+    unreadMessages: 0,
+    isWarning: false,
+    vacationHistory: [],
+    workSchedule: [...DEFAULT_WORK_SCHEDULE],
+    memo: '신입 학관. 적응 중이나 성장 속도 빠름.',
+  },
+  {
+    id: 'staff6',
+    name: '최학관',
+    taskCompletionRate: 87,
+    taskCompleted: 7,
+    taskTotal: 8,
+    unreadMessages: 1,
+    isWarning: false,
+    vacation: { start: '2026-02-24', end: '2026-02-25' },
+    vacationHistory: [
+      { id: 'v5', start: '2026-02-24', end: '2026-02-25', reason: '개인사유' },
+    ],
+    workSchedule: [...DEFAULT_WORK_SCHEDULE],
+    memo: 'AI 트랙 8기 선임 학관. 학생 상담 역량 우수.',
+  },
+  {
+    id: 'staff7',
+    name: '강학관',
+    taskCompletionRate: 82,
+    taskCompleted: 9,
+    taskTotal: 11,
+    unreadMessages: 0,
+    missedRound: '오전 팀순회',
+    isWarning: false,
+    vacationHistory: [
+      { id: 'v6', start: '2026-01-20', end: '2026-01-21', reason: '가족행사' },
+    ],
+    workSchedule: [...DEFAULT_WORK_SCHEDULE],
+    memo: 'AI 트랙 8기 보조 학관. 행정 업무 능숙.',
+  },
 ]
 
 // -- Staff Detail Page Data --
@@ -937,6 +993,16 @@ export const mockPlannerTracks: PlannerTrackCard[] = [
     staffCount: 2,
     studentCount: 40,
     tutorCount: 1,
+    operator: {
+      id: 'op3',
+      name: '박운영',
+      taskCompletionRate: 78,
+      taskCompleted: 7,
+      taskTotal: 9,
+      issueResolutionRate: 80,
+      issueResolved: 4,
+      issueTotal: 5,
+    },
     staff: [
       { id: 'staff6', name: '한학관', taskCompletionRate: 90 },
       { id: 'staff7', name: '윤학관', taskCompletionRate: 78 },
@@ -1247,6 +1313,84 @@ export const mockTrackTasks: TrackTask[] = [
   { id: 'tt3-d10b', title: '오전 팀순회', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'completed', scheduledDate: '2026-02-10', scheduledTime: '10:00', dueTime: '11:00', completedAt: '10:48', messages: [] },
   { id: 'tt3-d10c', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'completed', scheduledDate: '2026-02-10', scheduledTime: '09:00', dueTime: '09:30', completedAt: '09:28', messages: [] },
   { id: 'tt3-d10d', title: '일일 보고서', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'overdue', scheduledDate: '2026-02-10', scheduledTime: '17:00', dueTime: '18:00', messages: [] },
+
+  // === track2 (BE 트랙 5기) 2026-02-11 추가 tasks — staff4 정학관 ===
+  { id: 'tt2-e01', title: '조회 및 공지 전달', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'completed', scheduledDate: '2026-02-11', scheduledTime: '09:30', dueTime: '10:00', completedAt: '09:48', messages: [] },
+  { id: 'tt2-e02', title: '튜터 미팅 참석', type: 'manual', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'completed', priority: 'important', scheduledDate: '2026-02-11', scheduledTime: '10:30', dueTime: '11:30', completedAt: '11:20', messages: [
+    { id: 'ttm2-e02', authorName: '김운영', content: 'BE 5기 튜터 미팅 참석 부탁드려요.', timestamp: '09:00', isSelf: true },
+  ]},
+  { id: 'tt2-e03', title: '수강생 출결 리포트', type: 'milestone', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending_review', priority: 'important', scheduledDate: '2026-02-11', scheduledTime: '11:00', dueTime: '12:00', reviewerId: 'op1', reviewerName: '이운영', messages: [
+    { id: 'ttm2-e03', authorName: '정학관', content: '출결 리포트 제출합니다.', timestamp: '11:45', isSelf: false },
+  ]},
+  { id: 'tt2-e04', title: '점심시간 교실 관리', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'completed', scheduledDate: '2026-02-11', scheduledTime: '12:00', dueTime: '13:00', completedAt: '12:50', messages: [] },
+  { id: 'tt2-e05', title: '수강생 개별 면담 (이하은)', type: 'manual', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'in_progress', scheduledDate: '2026-02-11', scheduledTime: '13:00', dueTime: '14:00', description: '이하은 학생 — 프로젝트 진도 지연, 사유 확인', messages: [] },
+  { id: 'tt2-e06', title: '튜터 일일 리포트 취합', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-11', scheduledTime: '16:00', dueTime: '17:00', messages: [] },
+  { id: 'tt2-e07', title: '교실 비품 재고 확인', type: 'manual', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-11', description: '모니터, 키보드 등 실습 장비 점검', messages: [] },
+  { id: 'tt2-e08', title: '결석 사유서 미제출자 독촉', type: 'manual', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'completed', scheduledDate: '2026-02-11', completedAt: '10:15', description: '2/7~2/10 결석자 중 사유서 미제출 2명 연락', messages: [] },
+
+  // === track2 2026-02-11 추가 tasks — staff5 한학관 ===
+  { id: 'tt2-e09', title: '조회 및 공지 전달', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'completed', scheduledDate: '2026-02-11', scheduledTime: '09:30', dueTime: '10:00', completedAt: '09:52', messages: [] },
+  { id: 'tt2-e10', title: '수강생 면담 기록', type: 'manual', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'completed', scheduledDate: '2026-02-11', scheduledTime: '11:00', dueTime: '12:00', completedAt: '11:50', messages: [] },
+  { id: 'tt2-e11', title: '점심시간 교실 관리', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'in_progress', scheduledDate: '2026-02-11', scheduledTime: '12:00', dueTime: '13:00', messages: [] },
+  { id: 'tt2-e12', title: '수강생 만족도 설문 배포', type: 'milestone', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', priority: 'important', scheduledDate: '2026-02-11', scheduledTime: '13:00', dueTime: '14:00', description: '챕터2 종료 시점 만족도 조사', messages: [] },
+  { id: 'tt2-e13', title: '튜터 일일 리포트 취합', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: '2026-02-11', scheduledTime: '16:00', dueTime: '17:00', messages: [] },
+  { id: 'tt2-e14', title: 'HRD-Net 출석 동기화 확인', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'overdue', scheduledDate: '2026-02-11', scheduledTime: '10:30', dueTime: '11:00', messages: [] },
+  { id: 'tt2-e15', title: '주간 출결 현황 정리', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: '2026-02-11', description: '금주 출결 데이터 취합', messages: [] },
+
+  // === track2 2026-02-11 미배정 ===
+  { id: 'tt2-e16', title: 'BE 5기 프로젝트 발표장 예약', type: 'manual', trackId: 'track2', status: 'unassigned', priority: 'urgent', scheduledDate: '2026-02-11', scheduledTime: '15:00', dueTime: '16:00', unassignedReason: '담당자 미지정', messages: [] },
+
+  // === track3 (AI 트랙 8기) 2026-02-11 추가 tasks — staff6 최학관 ===
+  { id: 'tt3-e01', title: '조회 및 공지 전달', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'completed', scheduledDate: '2026-02-11', scheduledTime: '09:30', dueTime: '10:00', completedAt: '09:45', messages: [] },
+  { id: 'tt3-e02', title: '수강생 출결 리포트', type: 'milestone', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'in_progress', priority: 'important', scheduledDate: '2026-02-11', scheduledTime: '11:00', dueTime: '12:00', reviewerId: 'op3', reviewerName: '박운영', messages: [] },
+  { id: 'tt3-e03', title: '수강생 개별 면담 (조민아)', type: 'manual', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-11', scheduledTime: '13:00', dueTime: '14:00', description: '조민아 학생 — 진로 고민 상담', messages: [] },
+  { id: 'tt3-e04', title: '튜터 일일 리포트 취합', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-11', scheduledTime: '16:00', dueTime: '17:00', messages: [] },
+  { id: 'tt3-e05', title: 'NCS 자기평가서 입력 안내', type: 'milestone', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'completed', scheduledDate: '2026-02-11', completedAt: '10:10', messages: [] },
+
+  // === track3 2026-02-11 추가 tasks — staff7 강학관 ===
+  { id: 'tt3-e06', title: '조회 및 공지 전달', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'completed', scheduledDate: '2026-02-11', scheduledTime: '09:30', dueTime: '10:00', completedAt: '09:55', messages: [] },
+  { id: 'tt3-e07', title: '수강생 면담 기록', type: 'manual', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'overdue', scheduledDate: '2026-02-11', scheduledTime: '11:00', dueTime: '12:00', messages: [
+    { id: 'ttm3-e07', authorName: '박운영', content: '면담 기록 제출이 늦어지고 있어요. 확인 부탁드려요.', timestamp: '12:10', isSelf: true },
+  ]},
+  { id: 'tt3-e08', title: '교실 환경 점검', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'completed', scheduledDate: '2026-02-11', scheduledTime: '13:00', dueTime: '14:00', completedAt: '13:30', messages: [] },
+  { id: 'tt3-e09', title: 'HRD-Net 출석 동기화 확인', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', scheduledDate: '2026-02-11', description: 'HRD-Net 시스템과 실제 출석 데이터 비교', messages: [] },
+  { id: 'tt3-e10', title: '수강생 포트폴리오 양식 배포', type: 'manual', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending_review', scheduledDate: '2026-02-11', reviewerId: 'op3', reviewerName: '박운영', description: '운영매 요청 — 포트폴리오 가이드 공유', messages: [
+    { id: 'ttm3-e10', authorName: '강학관', content: '포트폴리오 양식 공유 완료했습니다. 확인 부탁드립니다.', timestamp: '15:00', isSelf: false },
+  ]},
+
+  // === track3 2026-02-11 미배정 ===
+  { id: 'tt3-e11', title: '교육장 프로젝터 점검', type: 'manual', trackId: 'track3', status: 'unassigned', scheduledDate: '2026-02-11', scheduledTime: '08:30', dueTime: '09:00', unassignedReason: '담당자 미지정', messages: [] },
+  { id: 'tt3-e12', title: 'OT 준비자료 인쇄', type: 'manual', trackId: 'track3', status: 'unassigned', priority: 'urgent', scheduledDate: '2026-02-11', scheduledTime: '15:00', dueTime: '16:00', unassignedReason: '담당자 미지정', messages: [] },
+
+  // === track2 미래 tasks (2026-02-12 ~ 2026-02-20) ===
+  { id: 'tt2-f01', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt2-f02', title: '오전 팀순회', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '10:00', dueTime: '11:00', messages: [] },
+  { id: 'tt2-f03', title: '일일 보고서 작성', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '17:00', dueTime: '18:00', messages: [] },
+  { id: 'tt2-f04', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt2-f05', title: '오후 팀순회', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '14:00', dueTime: '15:00', messages: [] },
+  { id: 'tt2-f06', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-13', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt2-f07', title: '주간 보고서 작성', type: 'milestone', completionType: 'evidence', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-13', scheduledTime: '15:00', dueTime: '17:00', messages: [] },
+  { id: 'tt2-f08', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: '2026-02-13', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt2-f09', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-16', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt2-f10', title: '오전 팀순회', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: '2026-02-16', scheduledTime: '10:00', dueTime: '11:00', messages: [] },
+  { id: 'tt2-f11', title: '챕터3 OT 진행', type: 'milestone', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', priority: 'important', scheduledDate: '2026-02-16', scheduledTime: '14:00', dueTime: '16:00', messages: [] },
+  { id: 'tt2-f12', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: '2026-02-18', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt2-f13', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: '2026-02-18', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+
+  // === track3 미래 tasks (2026-02-12 ~ 2026-02-20) ===
+  { id: 'tt3-f01', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt3-f02', title: '오전 팀순회', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '10:00', dueTime: '11:00', messages: [] },
+  { id: 'tt3-f03', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt3-f04', title: '일일 보고서 작성', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', scheduledDate: '2026-02-12', scheduledTime: '17:00', dueTime: '18:00', messages: [] },
+  { id: 'tt3-f05', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-13', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt3-f06', title: '주간 보고서 작성', type: 'milestone', completionType: 'evidence', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-13', scheduledTime: '15:00', dueTime: '17:00', messages: [] },
+  { id: 'tt3-f07', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', scheduledDate: '2026-02-13', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt3-f08', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-16', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt3-f09', title: '오전 팀순회', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', scheduledDate: '2026-02-16', scheduledTime: '10:00', dueTime: '11:00', messages: [] },
+  { id: 'tt3-f10', title: 'OT 자료 최종 검토', type: 'milestone', completionType: 'evidence', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', priority: 'important', scheduledDate: '2026-02-16', endDate: '2026-02-18', scheduledTime: '14:00', dueTime: '17:00', messages: [] },
+  { id: 'tt3-f11', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-20', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt3-f12', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', scheduledDate: '2026-02-20', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
+  { id: 'tt3-f13', title: '수강생 환경설정 지원', type: 'milestone', trackId: 'track3', status: 'unassigned', scheduledDate: '2026-02-20', endDate: '2026-02-22', scheduledTime: '10:00', dueTime: '17:00', unassignedReason: '담당자 미지정', messages: [] },
 ]
 
 // -- Track Notices (공지) --
@@ -1317,6 +1461,67 @@ export const mockTrackNotices: TrackNotice[] = [
       { id: 'tnr6', authorName: '이운영', content: '네 확인. 감사합니다.', timestamp: '2026-02-17 16:35', isManager: true },
     ],
   },
+  // === track2 공지 ===
+  {
+    id: 'tn6', trackId: 'track2', targetStaffId: null, targetStaffName: null,
+    authorName: '김운영', content: '챕터2 종료에 따라 수강생 만족도 설문을 오늘 중으로 배포해주세요. 구글폼 링크는 공유폴더에 있습니다.',
+    createdAt: '2026-02-11 09:00', expiresAt: '2026-02-12',
+    readBy: ['staff4'],
+    replies: [
+      { id: 'tnr7', authorName: '정학관', content: '네, 확인했습니다. 점심 전까지 배포하겠습니다.', timestamp: '2026-02-11 09:15', isManager: false },
+    ],
+  },
+  {
+    id: 'tn7', trackId: 'track2', targetStaffId: 'staff5', targetStaffName: '한학관',
+    authorName: '김운영', content: 'HRD-Net 출석 동기화 오류가 있습니다. 확인 후 수정 부탁드립니다.',
+    createdAt: '2026-02-11 10:30', expiresAt: '2026-02-12',
+    readBy: [],
+    replies: [],
+  },
+  {
+    id: 'tn8', trackId: 'track2', targetStaffId: null, targetStaffName: null,
+    authorName: '김운영', content: '다음 주 월요일(2/16)부터 챕터3 Spring Boot 실습이 시작됩니다. 환경 설정 가이드를 미리 공유해주세요.',
+    createdAt: '2026-02-10 17:00', expiresAt: '2026-02-16',
+    readBy: ['staff4', 'staff5'],
+    replies: [
+      { id: 'tnr8', authorName: '정학관', content: '환경 설정 가이드 준비 완료했습니다.', timestamp: '2026-02-11 08:30', isManager: false },
+      { id: 'tnr9', authorName: '한학관', content: '저도 확인 완료했습니다.', timestamp: '2026-02-11 09:00', isManager: false },
+    ],
+  },
+  {
+    id: 'tn9', trackId: 'track2', targetStaffId: 'staff4', targetStaffName: '정학관',
+    authorName: '김운영', content: '이하은 학생 면담 결과 공유 부탁드립니다.',
+    createdAt: '2026-02-11 13:30', expiresAt: '2026-02-12',
+    readBy: [],
+    replies: [],
+  },
+  // === track3 공지 ===
+  {
+    id: 'tn10', trackId: 'track3', targetStaffId: null, targetStaffName: null,
+    authorName: '박운영', content: 'AI 트랙 8기 OT 준비 진행 상황 공유 부탁드립니다. 3/1 시작 예정입니다.',
+    createdAt: '2026-02-11 09:00', expiresAt: '2026-02-15',
+    readBy: ['staff6'],
+    replies: [
+      { id: 'tnr10', authorName: '최학관', content: 'OT 자료 70% 완료했습니다. 금주 내 마무리하겠습니다.', timestamp: '2026-02-11 09:30', isManager: false },
+    ],
+  },
+  {
+    id: 'tn11', trackId: 'track3', targetStaffId: 'staff7', targetStaffName: '강학관',
+    authorName: '박운영', content: '포트폴리오 양식 검토 결과 피드백 드립니다. 수정 후 재공유 부탁드려요.',
+    createdAt: '2026-02-11 15:30', expiresAt: '2026-02-13',
+    readBy: [],
+    replies: [],
+  },
+  {
+    id: 'tn12', trackId: 'track3', targetStaffId: null, targetStaffName: null,
+    authorName: '박운영', content: '수강생 개발 환경 사전 점검을 이번 주 중으로 완료해주세요. Python, Jupyter 설치 확인 필수.',
+    createdAt: '2026-02-10 14:00', expiresAt: '2026-02-14',
+    readBy: ['staff6', 'staff7'],
+    replies: [
+      { id: 'tnr11', authorName: '강학관', content: '교실 PC 확인 완료했습니다. 2대 Python 재설치 필요합니다.', timestamp: '2026-02-10 16:00', isManager: false },
+      { id: 'tnr12', authorName: '박운영', content: '재설치 진행해주세요. 감사합니다.', timestamp: '2026-02-10 16:10', isManager: true },
+    ],
+  },
 ]
 
 // -- Unified Schedules --
@@ -1375,6 +1580,38 @@ export const mockSchedules: UnifiedSchedule[] = [
   { id: 'ps2', title: '이수진 면담', type: 'personal', source: 'manual', startDate: '2026-02-12', endDate: '2026-02-12', startTime: '10:30', creatorId: 'staff1', createdAt: '2026-02-10 09:05' },
   { id: 'ps3', title: '팀빌딩 자료 준비', type: 'personal', source: 'manual', startDate: '2026-02-14', endDate: '2026-02-14', creatorId: 'staff1', createdAt: '2026-02-10 10:00' },
   { id: 'ps4', title: '박지훈 면담', type: 'personal', source: 'manual', startDate: '2026-02-13', endDate: '2026-02-13', startTime: '15:00', creatorId: 'staff1', description: '출결 문제', createdAt: '2026-02-11 08:00' },
+
+  // === track2 — BE 트랙 5기 Chapters (2026.01.01 ~ 06.30) ===
+  { id: 'ch9', title: '챕터 3: Spring Boot 실습', type: 'chapter', source: 'system', startDate: '2026-02-16', endDate: '2026-03-13', trackId: 'track2', createdAt: '2026-01-15' },
+  { id: 'ch10', title: '챕터 4: 프로젝트 & 배포', type: 'chapter', source: 'system', startDate: '2026-03-16', endDate: '2026-06-30', trackId: 'track2', createdAt: '2026-01-15' },
+
+  // === track2 — Curriculum ===
+  { id: 'sch19', title: 'Spring MVC 패턴', type: 'curriculum', source: 'system', startDate: '2026-02-16', endDate: '2026-02-22', trackId: 'track2', category: '강의', createdAt: '2026-01-15' },
+  { id: 'sch20', title: 'JPA & 데이터베이스 설계', type: 'curriculum', source: 'system', startDate: '2026-02-23', endDate: '2026-03-01', trackId: 'track2', category: '강의', createdAt: '2026-01-15' },
+  { id: 'sch21', title: 'REST API 개발', type: 'curriculum', source: 'system', startDate: '2026-03-02', endDate: '2026-03-13', trackId: 'track2', category: '강의', createdAt: '2026-01-15' },
+  { id: 'sch22', title: '팀 프로젝트: API 서버 구축', type: 'curriculum', source: 'system', startDate: '2026-03-16', endDate: '2026-06-30', trackId: 'track2', category: '프로젝트', createdAt: '2026-01-15' },
+
+  // === track2 — Operation Periods ===
+  { id: 'op-p6', title: '면담 주간', type: 'operation_period', source: 'manual', startDate: '2026-02-16', endDate: '2026-02-20', trackId: 'track2', description: '챕터3 시작 — 전체 수강생 1:1 면담 진행', creatorId: 'op1', createdAt: '2026-02-10' },
+  { id: 'op-p7', title: '중간평가 주간', type: 'operation_period', source: 'manual', startDate: '2026-03-09', endDate: '2026-03-13', trackId: 'track2', description: '챕터3 종료 중간평가 실시', creatorId: 'op1', createdAt: '2026-02-25' },
+
+  // === track2 — Track Events ===
+  { id: 'sch23', title: '멘토링 데이', type: 'track_event', source: 'manual', startDate: '2026-02-28', endDate: '2026-02-28', trackId: 'track2', category: '행사', description: '현업 백엔드 개발자 초청 네트워킹', creatorId: 'op1', createdAt: '2026-02-15' },
+  { id: 'sch24', title: '코드 리뷰 세션', type: 'track_event', source: 'manual', startDate: '2026-03-06', endDate: '2026-03-06', trackId: 'track2', category: '평가', description: '챕터3 종료 전 코드 리뷰', creatorId: 'op1', createdAt: '2026-02-20' },
+
+  // === track3 — AI 트랙 8기 Chapters (2026.03.01 ~ 08.31) ===
+  { id: 'ch11', title: '챕터 1: AI 기초 & Python', type: 'chapter', source: 'system', startDate: '2026-03-01', endDate: '2026-04-10', trackId: 'track3', createdAt: '2026-02-15' },
+  { id: 'ch12', title: '챕터 2: 머신러닝 심화', type: 'chapter', source: 'system', startDate: '2026-04-13', endDate: '2026-06-05', trackId: 'track3', createdAt: '2026-02-15' },
+  { id: 'ch13', title: '챕터 3: 프로젝트 & 포트폴리오', type: 'chapter', source: 'system', startDate: '2026-06-08', endDate: '2026-08-31', trackId: 'track3', createdAt: '2026-02-15' },
+
+  // === track3 — Curriculum ===
+  { id: 'sch25', title: 'Python 프로그래밍 기초', type: 'curriculum', source: 'system', startDate: '2026-03-01', endDate: '2026-03-20', trackId: 'track3', category: '강의', createdAt: '2026-02-15' },
+  { id: 'sch26', title: '데이터 분석 기초', type: 'curriculum', source: 'system', startDate: '2026-03-23', endDate: '2026-04-10', trackId: 'track3', category: '강의', createdAt: '2026-02-15' },
+  { id: 'sch27', title: '머신러닝 알고리즘', type: 'curriculum', source: 'system', startDate: '2026-04-13', endDate: '2026-05-15', trackId: 'track3', category: '강의', createdAt: '2026-02-15' },
+  { id: 'sch28', title: '딥러닝 & 자연어처리', type: 'curriculum', source: 'system', startDate: '2026-05-18', endDate: '2026-06-05', trackId: 'track3', category: '강의', createdAt: '2026-02-15' },
+
+  // === track3 — Operation Periods ===
+  { id: 'op-p8', title: 'OT 및 환경설정 주간', type: 'operation_period', source: 'manual', startDate: '2026-03-01', endDate: '2026-03-06', trackId: 'track3', description: '트랙 OT, 개발 환경 구축, 팀 편성', creatorId: 'op3', createdAt: '2026-02-20' },
 ]
 
 // Legacy type aliases (하위 호환)
@@ -1409,6 +1646,16 @@ export const mockNotifications: AppNotification[] = [
   { id: 'noti16', type: 'escalation_triggered', category: 'system', title: '[에스컬레이션] 확인요청 미처리: 교육 자료 준비', description: '이학관 - AI 트랙 7기 (운영매 이운영님 미조치 8h 경과)', timestamp: '2026-02-11 13:00', isRead: false, linkTo: '/tracks/track1/tasks', recipientRole: 'operator_manager', relatedTrackId: 'track1', relatedStaffId: 'staff2', escalation: { isEscalated: true, originalRecipientRole: 'operator', escalatedAt: '2026-02-11 13:00', originalNotificationId: 'noti6' } },
   { id: 'noti17', type: 'task_review_done', category: 'action', title: '확인완료: 수강생 출결 리포트', description: '운영매니저가 확인을 완료했습니다', timestamp: '2026-02-11 11:45', isRead: false, linkTo: '/staff/staff1', recipientRole: 'learning_manager', relatedTrackId: 'track1', relatedTaskId: 'tt5', relatedStaffId: 'staff1' },
   { id: 'noti18', type: 'task_reminder', category: 'system', title: '시작 30분 전: 오후 팀순회', description: 'AI 트랙 7기 14:30~15:00', timestamp: '2026-02-11 14:00', isRead: false, linkTo: '/staff/staff1', recipientRole: 'learning_manager', relatedTrackId: 'track1', relatedTaskId: 'tt10', relatedStaffId: 'staff1' },
+  { id: 'noti19', type: 'threshold_staff_completion', category: 'threshold', title: '학관 완료율 기준 미달', description: '한학관 - BE 트랙 5기, 완료율 40% (기준 30%)', timestamp: '2026-02-11 14:00', isRead: false, linkTo: '/tracks/track2', recipientRole: 'operator', relatedTrackId: 'track2', relatedStaffId: 'staff5' },
+  { id: 'noti20', type: 'threshold_operator_completion', category: 'threshold', title: '운영매 완료율 기준 미달', description: '박운영 - AI 트랙 8기, 완료율 28% (기준 30%)', timestamp: '2026-02-11 14:00', isRead: false, linkTo: '/tracks/track3', recipientRole: 'operator_manager', relatedTrackId: 'track3' },
+  { id: 'noti21', type: 'threshold_overdue_tasks', category: 'threshold', title: '기한초과 누적: BE 트랙 5기', description: 'overdue Task 3건 이상 누적', timestamp: '2026-02-11 13:30', isRead: false, linkTo: '/tracks/track2', recipientRole: 'operator', relatedTrackId: 'track2' },
+  { id: 'noti22', type: 'task_review_done', category: 'action', title: '확인완료: 수강생 출결 리포트', description: '김운영 매니저가 확인을 완료했습니다 - BE 트랙 5기', timestamp: '2026-02-11 12:00', isRead: false, linkTo: '/staff/staff4', recipientRole: 'learning_manager', relatedTrackId: 'track2', relatedTaskId: 'tt2-e03', relatedStaffId: 'staff4' },
+  { id: 'noti23', type: 'schedule_changed', category: 'action', title: '일정 변경: 멘토링 데이', description: 'BE 트랙 5기 — 2/28 → 3/1로 변경', timestamp: '2026-02-11 10:00', isRead: true, linkTo: '/tracks/track2', recipientRole: 'learning_manager', relatedTrackId: 'track2' },
+  { id: 'noti24', type: 'message_new', category: 'action', title: '새 메시지: 정학관', description: 'BE 5기 실습실 장비 이슈 보고드립니다.', timestamp: '2026-02-11 11:00', isRead: false, linkTo: '/staff/staff4', recipientRole: 'operator', relatedTrackId: 'track2', relatedStaffId: 'staff4' },
+  { id: 'noti25', type: 'message_new', category: 'action', title: '새 메시지: 최학관', description: 'AI 8기 OT 자료 검토 완료했습니다.', timestamp: '2026-02-11 10:15', isRead: true, linkTo: '/staff/staff6', recipientRole: 'operator', relatedTrackId: 'track3', relatedStaffId: 'staff6' },
+  { id: 'noti26', type: 'message_new', category: 'action', title: '새 메시지: 강학관', description: '교실 프로젝터 점검 결과 공유드립니다.', timestamp: '2026-02-11 13:35', isRead: false, linkTo: '/staff/staff7', recipientRole: 'operator', relatedTrackId: 'track3', relatedStaffId: 'staff7' },
+  { id: 'noti27', type: 'task_overdue', category: 'system', title: '기한초과: 수강생 면담 기록', description: '강학관 - AI 트랙 8기, 12:00 마감', timestamp: '2026-02-11 12:05', isRead: false, linkTo: '/tracks/track3', recipientRole: 'operator', relatedTrackId: 'track3', relatedTaskId: 'tt3-e07', relatedStaffId: 'staff7' },
+  { id: 'noti28', type: 'threshold_pending_issues', category: 'threshold', title: '이슈 누적: AI 트랙 8기', description: '미처리 이슈 3건 이상 누적', timestamp: '2026-02-11 14:30', isRead: false, linkTo: '/tracks/track3', recipientRole: 'operator', relatedTrackId: 'track3' },
 ]
 
 // -- Notification Configs --
@@ -1512,6 +1759,10 @@ export const mockCommMessages: Record<string, CommMessage[]> = {
   'chat:mgr1:op2': [
     { id: 'cm-5', content: 'BE 트랙 학관 충원 건 진행 상황 공유해주세요.', authorId: 'mgr1', authorName: '박총괄', timestamp: '2026-02-10T16:00:00' },
     { id: 'cm-6', content: '이번 주 내로 면접 진행 예정입니다.', authorId: 'op2', authorName: '김운영', timestamp: '2026-02-10T16:30:00' },
+    { id: 'cm-7', content: '면접 후보자 3명 서류 검토 완료했습니다. 리스트 공유드려도 될까요?', authorId: 'op2', authorName: '김운영', timestamp: '2026-02-11T09:00:00' },
+    { id: 'cm-8', content: '네, 공유해주세요. 이력서랑 같이 보겠습니다.', authorId: 'mgr1', authorName: '박총괄', timestamp: '2026-02-11T09:15:00' },
+    { id: 'cm-9', content: '메일로 발송했습니다. BE 트랙 실습 장비 추가 구매 건도 논의가 필요합니다.', authorId: 'op2', authorName: '김운영', timestamp: '2026-02-11T09:30:00' },
+    { id: 'cm-9b', content: '장비 건은 내일 미팅에서 논의합시다.', authorId: 'mgr1', authorName: '박총괄', timestamp: '2026-02-11T09:45:00' },
   ],
   'chat:op1:staff1': [
     { id: 'cm-10', content: '수강생 김민수님 출석 관련해서 확인 부탁드립니다.', authorId: 'op1', authorName: '이운영', timestamp: '2026-02-11T09:15:00' },
@@ -1522,9 +1773,19 @@ export const mockCommMessages: Record<string, CommMessage[]> = {
   'chat:op1:staff2': [
     { id: 'cm-20', content: '프로젝트 중간점검 자료 제출 완료했습니다.', authorId: 'staff2', authorName: '이학관', timestamp: '2026-02-11T10:00:00' },
     { id: 'cm-21', content: '자료 잘 받았습니다. 2팀 진도 확인 부탁드려요.', authorId: 'op1', authorName: '이운영', timestamp: '2026-02-11T10:05:00' },
+    { id: 'cm-22', content: '2팀 진도 확인 완료했습니다. 3명 진도 미달이에요.', authorId: 'staff2', authorName: '이학관', timestamp: '2026-02-11T11:30:00' },
+    { id: 'cm-23', content: '미달 학생 리스트 공유해주세요. 면담 일정 잡겠습니다.', authorId: 'op1', authorName: '이운영', timestamp: '2026-02-11T11:35:00' },
+    { id: 'cm-24', content: '네, 김지현/이수진/박태호 학생입니다. 오후에 면담 가능할 것 같습니다.', authorId: 'staff2', authorName: '이학관', timestamp: '2026-02-11T11:40:00' },
   ],
   'chat:op1:staff3': [
     { id: 'cm-30', content: '수강생 상담 일정 변경 요청이 있어서 보고드립니다.', authorId: 'staff3', authorName: '박학관', timestamp: '2026-02-11T11:00:00' },
+  ],
+  'chat:mgr1:op3': [
+    { id: 'cm-40', content: 'AI 트랙 8기 OT 준비 상황 어떤가요?', authorId: 'mgr1', authorName: '박총괄', timestamp: '2026-02-11T08:00:00' },
+    { id: 'cm-41', content: 'OT 자료 검토 중입니다. 학관 2명이 사전 점검 진행하고 있습니다.', authorId: 'op3', authorName: '박운영', timestamp: '2026-02-11T08:20:00' },
+    { id: 'cm-42', content: '교실 PC 환경 설정은 완료됐나요?', authorId: 'mgr1', authorName: '박총괄', timestamp: '2026-02-11T08:30:00' },
+    { id: 'cm-43', content: 'Python, Jupyter 설치 확인 중입니다. 2대 재설치 필요해서 오늘 중 처리 예정입니다.', authorId: 'op3', authorName: '박운영', timestamp: '2026-02-11T08:45:00' },
+    { id: 'cm-44', content: '수강생 40명 명단 확정되면 바로 공유 부탁드려요.', authorId: 'mgr1', authorName: '박총괄', timestamp: '2026-02-11T09:00:00' },
   ],
 }
 
@@ -1537,4 +1798,5 @@ export const mockCommUnreadMap: Record<string, number> = {
   'chat:op1:staff1': 2,
   'chat:op1:staff3': 1,
   'chat:mgr1:op2': 1,
+  'chat:mgr1:op3': 3,
 }

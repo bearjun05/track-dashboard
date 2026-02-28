@@ -106,6 +106,24 @@ http://localhost:3000 접속 후 상단 DEBUG 바에서 역할(총괄/운영/학
 | `lib/interview-store.ts` | 면담 스토어 | API 연동 |
 | `components/comm/floating-comm-widget.tsx` | 소통 위젯 데이터 (현재 `useAdminStore`의 `commMessages`, `commNotifications`, `commStickies`) | 이미 스토어에서 읽으므로, 스토어만 API로 전환하면 자동 반영 |
 
+### Mock 데이터 현재 규모
+
+| 데이터 | 건수 | 비고 |
+|--------|------|------|
+| 트랙 (PlannerTrackCard) | 3개 | AI 7기, BE 5기, AI 8기 |
+| 학관 (Staff) | 7명 | track1: 3명, track2: 2명, track3: 2명 |
+| 운영매 (Operator) | 3명 | op1 이운영, op2 김운영, op3 박운영 |
+| TrackTasks | ~230개 | 당일(2/11) ~80개 + 과거/미래 분산 |
+| Schedules | ~53개 | 3개 트랙에 chapter/curriculum/operation/event/personal |
+| Notifications | ~28개 | SYS/ACT/THR 전체 타입 커버 |
+| ManagerTasks | 10개 | 총괄/운영매 개인 업무 |
+| Comm Messages | ~30개 | 8개 채널 |
+| TrackNotices | ~12개 | 3개 트랙 |
+| StaffCards | 7개 | 전체 학관 상세 |
+| Interview Students | 57명 | 10팀 |
+| RoundChecks | ~20건 | 오전/오후 다양한 체크 |
+| StudentLogs | ~11건 | 6명 학생 대상 |
+
 ### 교체하면 안 되는 파일 (타입/설정만 포함)
 
 - `lib/admin-mock-data.ts`의 **타입 정의** (`interface`, `type`, `NOTIFICATION_TYPE_CONFIG` 등) — 그대로 유지
