@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useCallback } from 'react'
-import { Clock, CalendarDays, Users, User, RefreshCw, Clock3, Info } from 'lucide-react'
+import { Clock, CalendarDays, Users, User, RefreshCw, Clock3, Info, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { taskTemplates, ROLE_LABELS } from '@/lib/task-templates'
@@ -59,9 +59,14 @@ export function StepTaskAssignment({ data, updateData }: StepTaskAssignmentProps
     () => allTemplates.filter(t => t.frequency === 'weekly' && t.driRole === 'learning_manager' && activeTemplateIds.has(t.id)),
     [allTemplates, activeTemplateIds],
   )
+  const adHocLmTemplates = useMemo(
+    () => allTemplates.filter(t => t.frequency === 'ad_hoc' && t.driRole === 'learning_manager' && activeTemplateIds.has(t.id)),
+    [allTemplates, activeTemplateIds],
+  )
 
   const dailySectionMode = useMemo(() => inferSectionMode(dailyLmTemplates, assignments), [dailyLmTemplates, assignments])
   const weeklySectionMode = useMemo(() => inferSectionMode(weeklyLmTemplates, assignments), [weeklyLmTemplates, assignments])
+  const adHocSectionMode = useMemo(() => inferSectionMode(adHocLmTemplates, assignments), [adHocLmTemplates, assignments])
 
   const setSectionMode = useCallback((templates: TaskTemplateConfig[], mode: AssignmentMode, cycle: 'daily' | 'weekly') => {
     const updated = { ...assignments }
@@ -109,7 +114,7 @@ export function StepTaskAssignment({ data, updateData }: StepTaskAssignmentProps
     return { cycle: 'daily' as const, staffOrder: lms.map(lm => lm.id) }
   }, [assignments, lms])
 
-  const hasRecurringTasks = dailyLmTemplates.length > 0 || weeklyLmTemplates.length > 0
+  const hasRecurringTasks = dailyLmTemplates.length > 0 || weeklyLmTemplates.length > 0 || adHocLmTemplates.length > 0
 
   return (
     <div className="space-y-10 pb-4">
@@ -164,6 +169,24 @@ export function StepTaskAssignment({ data, updateData }: StepTaskAssignmentProps
         />
       )}
 
+      {/* ── Ad Hoc Section ── */}
+      {adHocLmTemplates.length > 0 && (
+        <AssignmentSection
+          icon={Info}
+          title="수시 업무"
+          description="수시로 발생하는 업무의 담당자를 정해주세요."
+          templates={adHocLmTemplates}
+          sectionMode={adHocSectionMode}
+          onSetMode={(mode) => setSectionMode(adHocLmTemplates, mode, 'daily')}
+          rotationConfig={getRotationConfig(adHocLmTemplates)}
+          onUpdateRotation={(order) => updateRotationOrder(adHocLmTemplates, order, 'daily')}
+          learningManagers={lms}
+          assignments={assignments}
+          onSetSingle={setSingleAssignment}
+          cycle="daily"
+        />
+      )}
+
       {/* ── Rest (not assignable in this step) ── */}
       <section className="space-y-3">
         <div>
@@ -172,7 +195,7 @@ export function StepTaskAssignment({ data, updateData }: StepTaskAssignmentProps
             <h3 className="text-sm font-semibold text-foreground">나머지 업무</h3>
           </div>
           <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
-            챕터별, 월간, 1회성, 수시 업무는 트랙 운영이 시작되면 상황에 맞게 담당자를 배정할 수 있어요.
+            챕터별, 월간, 1회성 업무는 트랙 운영이 시작되면 상황에 맞게 담당자를 배정할 수 있어요.
             지금은 넘어가셔도 됩니다.
           </p>
         </div>
@@ -214,7 +237,7 @@ function AssignmentSection({
   title: string
   description: string
   templates: TaskTemplateConfig[]
-  sectionMode: AssignmentMode
+  sectionMode: AssignmentMode | 'custom'
   onSetMode: (mode: AssignmentMode) => void
   rotationConfig: { cycle: 'daily' | 'weekly'; staffOrder: string[] }
   onUpdateRotation: (order: string[]) => void
@@ -223,6 +246,67 @@ function AssignmentSection({
   onSetSingle: (id: string, partial: Partial<TaskAssignmentConfig>) => void
   cycle: 'daily' | 'weekly'
 }) {
+  const staffNames = learningManagers.slice(0, 3).map(lm => lm.name.charAt(0))
+  const staffCount = learningManagers.length
+
+  function MiniPreview({ mode: m }: { mode: AssignmentMode }) {
+    if (staffCount === 0) return null
+    if (m === 'all') {
+      return (
+        <div className="mt-1.5 flex items-center justify-center gap-0.5">
+          {learningManagers.slice(0, 4).map((lm, i) => (
+            <span key={lm.id} className={cn('flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold', getStaffColor(i).bg, getStaffColor(i).text)}>
+              {lm.name.charAt(0)}
+            </span>
+          ))}
+          {staffCount > 4 && <span className="text-[8px] text-muted-foreground">+{staffCount - 4}</span>}
+        </div>
+      )
+    }
+    if (m === 'rotation') {
+      const slots = cycle === 'daily' ? DAY_LABELS : ['1주', '2주', '3주', '4주', '5주']
+      return (
+        <div className="mt-1.5 flex items-center justify-center gap-px">
+          {slots.slice(0, 5).map((label, i) => {
+            const staffIdx = i % staffCount
+            const color = getStaffColor(staffIdx)
+            return (
+              <div key={label} className="flex flex-col items-center">
+                <span className="text-[7px] text-muted-foreground/50">{label}</span>
+                <span className={cn('flex h-4 w-4 items-center justify-center rounded text-[7px] font-bold', color.bg, color.text)}>
+                  {staffNames[staffIdx] ?? '?'}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+    if (m === 'specific') {
+      return (
+        <div className="mt-1.5 flex items-center justify-center gap-0.5">
+          <span className={cn('flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold ring-2 ring-primary/30', getStaffColor(0).bg, getStaffColor(0).text)}>
+            {staffNames[0]}
+          </span>
+          {staffCount > 1 && (
+            <>
+              {learningManagers.slice(1, 3).map((lm, i) => (
+                <span key={lm.id} className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[8px] text-muted-foreground/40">
+                  {lm.name.charAt(0)}
+                </span>
+              ))}
+            </>
+          )}
+        </div>
+      )
+    }
+    return (
+      <div className="mt-1.5 flex items-center justify-center">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 text-[8px] text-muted-foreground/30">?</span>
+      </div>
+    )
+  }
+
   const modeOptions: { mode: AssignmentMode; label: string; icon: React.ReactNode; desc: string }[] = [
     { mode: 'all', label: '전원이 각자', icon: <Users className="h-4 w-4" />, desc: '모든 학관매가 각자 수행' },
     { mode: 'rotation', label: '돌아가면서', icon: <RefreshCw className="h-4 w-4" />, desc: cycle === 'daily' ? '일별로 순환 배정' : '주별로 순환 배정' },
@@ -244,6 +328,15 @@ function AssignmentSection({
       </div>
 
       {/* Mode Selector */}
+      {sectionMode === 'custom' && (
+        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/[0.03] px-3 py-2">
+          <Settings2 className="h-3.5 w-3.5 text-primary/60" />
+          <p className="text-[11px] text-primary/70">
+            <span className="font-medium">항목별로 다른 배정 모드가 설정되어 있어요.</span>
+            {' '}아래 카드를 누르면 전체를 일괄 변경합니다.
+          </p>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {modeOptions.map(opt => (
           <button
@@ -251,7 +344,7 @@ function AssignmentSection({
             type="button"
             onClick={() => onSetMode(opt.mode)}
             className={cn(
-              'flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-3 transition-all',
+              'flex flex-col items-center gap-1 rounded-lg border-2 px-3 py-3 transition-all',
               sectionMode === opt.mode
                 ? 'border-primary bg-primary/5 text-primary'
                 : 'border-border bg-card text-muted-foreground hover:border-primary/30 hover:bg-muted/30',
@@ -260,6 +353,7 @@ function AssignmentSection({
             {opt.icon}
             <span className="text-[12px] font-semibold">{opt.label}</span>
             <span className="text-[10px] leading-tight opacity-70">{opt.desc}</span>
+            <MiniPreview mode={opt.mode} />
           </button>
         ))}
       </div>
@@ -294,7 +388,7 @@ function AssignmentSection({
       {/* Specific mode: single picker for section */}
       {sectionMode === 'specific' && learningManagers.length > 0 && (
         <div className="rounded-lg bg-muted/30 px-3 py-2.5">
-          <p className="mb-2 text-[11px] text-muted-foreground">이 섹션의 모든 업무를 담당할 학관매를 선택해주세요.</p>
+          <p className="mb-2 text-[11px] text-muted-foreground">기본 담당자를 선택하세요. 각 업무의 담당자는 아래에서 개별 변경할 수 있어요.</p>
           <div className="flex flex-wrap gap-1.5">
             {learningManagers.map((lm, i) => {
               const isSelected = templates.every(tpl => assignments[tpl.id]?.specificStaffId === lm.id)
@@ -305,7 +399,10 @@ function AssignmentSection({
                   type="button"
                   onClick={() => {
                     for (const tpl of templates) {
-                      onSetSingle(tpl.id, { mode: 'specific', specificStaffId: lm.id })
+                      const existing = assignments[tpl.id]
+                      if (!existing?.specificStaffId || existing.mode !== 'specific') {
+                        onSetSingle(tpl.id, { mode: 'specific', specificStaffId: lm.id })
+                      }
                     }
                   }}
                   className={cn(
@@ -337,7 +434,7 @@ function AssignmentSection({
         {templates.map(tpl => {
           const tplAssignment = assignments[tpl.id]
           const tplMode = tplAssignment?.mode ?? 'unassigned'
-          const isOverridden = tplMode !== sectionMode
+          const isOverridden = sectionMode !== 'custom' && tplMode !== sectionMode
           return (
             <TaskAssignmentRow
               key={tpl.id}
@@ -376,7 +473,7 @@ function TaskAssignmentRow({
 
   const modeLabel = mode === 'all' ? '전원'
     : mode === 'rotation' ? '순환'
-    : mode === 'specific' ? (staffMap.get(assignment?.specificStaffId ?? '') ?? '지정')
+    : mode === 'specific' ? '지정'
     : '미배정'
 
   return (
@@ -538,10 +635,10 @@ function RotationTimeline({
 function inferSectionMode(
   templates: TaskTemplateConfig[],
   assignments: Record<string, TaskAssignmentConfig>,
-): AssignmentMode {
+): AssignmentMode | 'custom' {
   if (templates.length === 0) return 'unassigned'
   const modes = templates.map(t => assignments[t.id]?.mode ?? 'unassigned')
   const first = modes[0]
   if (modes.every(m => m === first)) return first
-  return first
+  return 'custom'
 }

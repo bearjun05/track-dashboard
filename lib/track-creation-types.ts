@@ -52,6 +52,7 @@ export type DriRole = 'operator_manager' | 'operator' | 'learning_manager'
 export interface RecurrenceConfig {
   type: RecurrenceType
   time?: string
+  endTime?: string
   daysOfWeek?: number[]
   interval?: number
   startDate?: string

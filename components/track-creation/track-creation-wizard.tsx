@@ -174,20 +174,13 @@ export function TrackCreationWizard({ mode = 'create', trackId, initialData }: T
           <span className="text-sm text-muted-foreground">
             {currentStep} / {TOTAL_STEPS}
           </span>
-          <div className="flex items-center gap-2">
-            {currentStep < TOTAL_STEPS && (
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={handleNext}>
-                건너뛰기
-              </Button>
-            )}
-            {currentStep < TOTAL_STEPS ? (
-              <Button onClick={handleNext} disabled={!canGoNext()}>
-                다음
-              </Button>
-            ) : (
-              <div />
-            )}
-          </div>
+          {currentStep < TOTAL_STEPS ? (
+            <Button onClick={handleNext} disabled={!canGoNext()}>
+              다음
+            </Button>
+          ) : (
+            <div />
+          )}
         </div>
       </div>
     </div>

@@ -79,7 +79,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <span className="text-[14px] font-bold tracking-tight text-foreground">APM</span>
+              <span className="text-[14px] font-bold tracking-tight text-foreground">EduWorks</span>
             </div>
           )}
           <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>

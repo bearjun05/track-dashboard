@@ -1,7 +1,7 @@
 'use client'
 
-import { DashboardHome } from './dashboard-home'
+import { ManagerOverview } from './manager-overview'
 
 export function ManagerDashboardHome({ managerId }: { managerId?: string }) {
-  return <DashboardHome userId={managerId ?? 'mgr1'} role="operator_manager" />
+  return <ManagerOverview userId={managerId ?? 'mgr1'} role="operator_manager" />
 }

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useAdminStore } from '@/lib/admin-store'
 import type { TrackTask, TrackTaskStatus, TaskType, VacationEntry } from '@/lib/admin-mock-data'
 import { ROLE_LABELS, ROLE_LABELS_FULL } from '@/lib/role-labels'
-import { X, Clock, UserX, MessageSquare, CheckCircle2, Send, RefreshCw, Plus, Trash2 } from 'lucide-react'
+import { X, Clock, UserX, MessageSquare, CheckCircle2, Send, RefreshCw, Plus, Trash2, Zap, Star } from 'lucide-react'
 import { TODAY_STR, addDays, getStaffColor } from './track-utils'
 import { StatusBadge, TypeBadge } from './track-task-card'
 
@@ -69,6 +69,7 @@ export function NewTaskModal({ trackId, staffList, onAdd, onClose }: {
 }) {
   const [title, setTitle] = useState('')
   const [type, setType] = useState<TaskType>('manual')
+  const [priority, setPriority] = useState<'normal' | 'important' | 'urgent'>('normal')
   const [assignee, setAssignee] = useState('')
   const [date, setDate] = useState(TODAY_STR)
   const [time, setTime] = useState('10:00')
@@ -105,6 +106,25 @@ export function NewTaskModal({ trackId, staffList, onAdd, onClose }: {
             </div>
           </div>
           <div>
+            <label className="mb-1 block text-[11px] font-medium text-muted-foreground">중요도</label>
+            <div className="flex gap-1.5">
+              {([
+                { key: 'normal', label: '보통', icon: null, activeClass: 'border-foreground/30 bg-foreground/[0.04] text-foreground' },
+                { key: 'important', label: '중요', icon: Star, activeClass: 'border-amber-300 bg-amber-50 text-amber-700' },
+                { key: 'urgent', label: '긴급', icon: Zap, activeClass: 'border-red-300 bg-red-50 text-red-700' },
+              ] as const).map((opt) => {
+                const active = priority === opt.key
+                return (
+                  <button key={opt.key} type="button" onClick={() => setPriority(opt.key)}
+                    className={`flex items-center gap-1 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors ${active ? opt.activeClass : 'border-border text-muted-foreground hover:bg-secondary'}`}>
+                    {opt.icon && <opt.icon className="h-3 w-3" />}
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div>
             <label className="mb-1 block text-[11px] font-medium text-muted-foreground">담당자</label>
             <select value={assignee} onChange={(e) => setAssignee(e.target.value)}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground focus:border-foreground/30 focus:outline-none">
@@ -136,6 +156,7 @@ export function NewTaskModal({ trackId, staffList, onAdd, onClose }: {
             const staff = staffList.find((s) => s.id === assignee)
             const newTask: TrackTask = {
               id: `tt-new-${Date.now()}`, title: title.trim(), type, completionType, trackId,
+              priority: priority === 'normal' ? undefined : priority,
               assigneeId: staff?.id, assigneeName: staff?.name,
               status: staff ? 'pending' : 'unassigned',
               scheduledDate: date, scheduledTime: time, dueTime,

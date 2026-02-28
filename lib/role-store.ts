@@ -23,3 +23,9 @@ export const ROLE_USER_NAME: Record<AppRole, string> = {
   operator: '이운영',
   learning_manager: '김학관',
 }
+
+export const ROLE_USER_MAP: Record<AppRole, string> = {
+  operator_manager: 'mgr1',
+  operator: 'op1',
+  learning_manager: 'staff1',
+}

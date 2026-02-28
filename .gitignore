@@ -1,12 +1,39 @@
-# v0 runtime files (should only exist in preview, not in git)
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Environment
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Development screenshots (root level PNGs)
+/*.png
+
+# Old policy files at root (migrated to docs/)
+/TASK_SYSTEM_POLICY.md
+
+# Data files
+*.csv
+
+# Backup docs (reference only, not for production)
+docs/_backup/
+
+# v0 runtime files
 __v0_runtime_loader.js
 __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
 instrumentation-client.js
 instrumentation-client.ts
-
-# Common ignores
-node_modules/
-.next/
-.env*.local
-.DS_Store

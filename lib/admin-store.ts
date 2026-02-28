@@ -23,13 +23,17 @@ import type {
   NotificationCategory,
   RecipientRole,
   NotificationConfig,
-  TrackSchedule,
   TrackNotice,
   NoticeReply,
   VacationEntry,
   WorkScheduleEntry,
   ChapterInfo,
+  CommMessage,
+  CommSystemNotification,
+  StickyNotice,
 } from './admin-mock-data'
+import type { UnifiedTask, TaskStatus as UnifiedTaskStatus } from '@/components/task/task-types'
+import type { UnifiedSchedule } from '@/components/schedule/schedule-types'
 import type { Chapter, TrackStaffAssignment, GeneratedTask } from './track-creation-types'
 import {
   mockOperators,
@@ -46,10 +50,14 @@ import {
   mockCohorts,
   mockTrackTasks,
   mockNotifications,
-  mockTrackSchedules,
+  mockSchedules,
   mockTrackNotices,
   mockNotificationConfigs,
-  mockChapters,
+  mockManagerTasks,
+  mockCommNotifications,
+  mockCommMessages,
+  mockCommStickies,
+  mockCommUnreadMap,
   NOTIFICATION_TYPE_CONFIG,
 } from './admin-mock-data'
 
@@ -63,7 +71,7 @@ interface AdminState {
   staffTasks: StaffTask[]
   operatorTasks: Record<string, OperatorTask[]>
   operatorTrackDetails: Record<string, OperatorTrackDetail[]>
-  chapters: ChapterInfo[]
+  schedules: UnifiedSchedule[]
   userRole: 'operator_manager' | 'operator'
 
   // Kanban
@@ -78,17 +86,17 @@ interface AdminState {
   bulkAssignTasks: (taskIds: string[], staffId: string, staffName: string) => void
   reassignTask: (taskId: string, staffId: string, staffName: string, newDueDate?: string) => void
   updateTrackTaskStatus: (taskId: string, status: TrackTaskStatus) => void
+  requestTaskReview: (taskId: string, reviewerId: string, reviewerName: string) => void
   addTrackTask: (task: TrackTask) => void
   addTaskMessage: (taskId: string, content: string) => void
   deferTask: (taskId: string, newStartDate: string, newEndDate?: string) => void
   moveTaskToToday: (taskId: string) => void
   moveTaskToDate: (taskId: string, newDate: string) => void
 
-  // Track Schedules
-  trackSchedules: TrackSchedule[]
-  addTrackSchedule: (schedule: TrackSchedule) => void
-  updateTrackSchedule: (id: string, updates: Partial<Omit<TrackSchedule, 'id' | 'source'>>) => void
-  removeTrackSchedule: (id: string) => void
+  // Schedules (unified)
+  addSchedule: (schedule: UnifiedSchedule) => void
+  updateSchedule: (id: string, updates: Partial<Omit<UnifiedSchedule, 'id' | 'type' | 'source'>>) => void
+  removeSchedule: (id: string) => void
 
   // Track Notices (공지)
   trackNotices: TrackNotice[]
@@ -137,6 +145,24 @@ interface AdminState {
   updateStaffMemo: (staffId: string, memo: string) => void
   removeStaffVacation: (staffId: string, vacationId: string) => void
 
+  // Manager personal tasks (UnifiedTask 기반)
+  managerTasks: UnifiedTask[]
+  addManagerTask: (task: UnifiedTask) => void
+  updateManagerTaskStatus: (taskId: string, status: UnifiedTaskStatus) => void
+  removeManagerTask: (taskId: string) => void
+  addManagerTaskMessage: (taskId: string, content: string, authorId: string, authorName: string, isSelf: boolean) => void
+
+  // Comm Widget
+  commNotifications: CommSystemNotification[]
+  commMessages: Record<string, CommMessage[]>
+  commStickies: Record<string, StickyNotice>
+  commUnreadMap: Record<string, number>
+  addCommMessage: (channelId: string, message: CommMessage) => void
+  addCommReaction: (channelId: string, msgId: string, emoji: string) => void
+  updateStickyNote: (channelId: string, content: string, authorId: string, authorName: string) => void
+  deleteStickyNote: (channelId: string) => void
+  markCommNotificationRead: (notificationId: string) => void
+
   // Track Creation / Edit
   createTrack: (data: {
     name: string
@@ -168,7 +194,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   staffTasks: mockStaffTasks,
   operatorTasks: mockOperatorTasks,
   operatorTrackDetails: mockOperatorTrackDetails,
-  chapters: mockChapters,
+  schedules: mockSchedules,
   userRole: 'operator_manager',
 
   kanbanCards: mockKanbanCards,
@@ -176,10 +202,14 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   plannerTracks: mockPlannerTracks,
   cohorts: mockCohorts,
   trackTasks: mockTrackTasks,
-  trackSchedules: mockTrackSchedules,
   trackNotices: mockTrackNotices,
   notifications: mockNotifications,
   notificationConfigs: mockNotificationConfigs,
+  managerTasks: mockManagerTasks,
+  commNotifications: mockCommNotifications,
+  commMessages: mockCommMessages,
+  commStickies: mockCommStickies,
+  commUnreadMap: mockCommUnreadMap,
 
   addNotification: (notification) => {
     const now = new Date()
@@ -210,7 +240,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }))
     if (task) {
       get().addNotification({
-        type: 'task_assigned', category: 'action', isMandatory: true, recipientRole: 'learning_manager',
+        type: 'task_assigned', category: 'action', recipientRole: 'learning_manager',
         title: `Task 배정: ${task.title}`, description: `${staffName}에게 배정`,
         linkTo: '/', relatedTrackId: task.trackId, relatedTaskId: taskId, relatedStaffId: staffId,
       })
@@ -226,7 +256,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }))
     if (tasks.length > 0) {
       get().addNotification({
-        type: 'task_assigned', category: 'action', isMandatory: true, recipientRole: 'learning_manager',
+        type: 'task_assigned', category: 'action', recipientRole: 'learning_manager',
         title: `Task 일괄 배정: ${tasks.length}건`, description: `${staffName}에게 ${tasks.length}건 배정`,
         linkTo: '/', relatedTrackId: tasks[0].trackId, relatedStaffId: staffId,
       })
@@ -243,7 +273,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }))
     if (task) {
       get().addNotification({
-        type: 'task_reassigned', category: 'action', isMandatory: true, recipientRole: 'learning_manager',
+        type: 'task_reassigned', category: 'action', recipientRole: 'learning_manager',
         title: `Task 재배정: ${task.title}`, description: `${prevAssignee ?? '미배정'} → ${staffName}`,
         linkTo: '/', relatedTrackId: task.trackId, relatedTaskId: taskId, relatedStaffId: staffId,
       })
@@ -259,12 +289,20 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }))
     if (task && status === 'completed') {
       get().addNotification({
-        type: 'task_completed', category: 'action', isMandatory: false, recipientRole: 'operator',
+        type: 'task_completed', category: 'action', recipientRole: 'operator',
         title: `Task 완료: ${task.title}`, description: `${task.assigneeName ?? '알수없음'} - 완료 처리`,
         linkTo: `/staff/${task.assigneeId}`,
         relatedTrackId: task.trackId, relatedTaskId: taskId, relatedStaffId: task.assigneeId,
       })
     }
+  },
+
+  requestTaskReview: (taskId, reviewerId, reviewerName) => {
+    set((state) => ({
+      trackTasks: state.trackTasks.map((t) =>
+        t.id === taskId ? { ...t, status: 'pending_review' as TrackTaskStatus, reviewerId, reviewerName } : t,
+      ),
+    }))
   },
 
   addTrackTask: (task) =>
@@ -295,7 +333,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }))
     if (task?.assigneeId) {
       get().addNotification({
-        type: 'message_new', category: 'action', isMandatory: true, recipientRole: 'learning_manager',
+        type: 'message_new', category: 'action', recipientRole: 'learning_manager',
         title: `새 메시지: ${task.title}`, description: content.slice(0, 50),
         linkTo: '/', relatedTrackId: task.trackId, relatedTaskId: taskId, relatedStaffId: task.assigneeId,
       })
@@ -345,21 +383,21 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       }),
     })),
 
-  addTrackSchedule: (schedule) =>
+  addSchedule: (schedule) =>
     set((state) => ({
-      trackSchedules: [...state.trackSchedules, schedule],
+      schedules: [...state.schedules, schedule],
     })),
 
-  updateTrackSchedule: (id, updates) =>
+  updateSchedule: (id, updates) =>
     set((state) => ({
-      trackSchedules: state.trackSchedules.map((s) =>
+      schedules: state.schedules.map((s) =>
         s.id === id ? { ...s, ...updates } : s,
       ),
     })),
 
-  removeTrackSchedule: (id) =>
+  removeSchedule: (id) =>
     set((state) => ({
-      trackSchedules: state.trackSchedules.filter((s) => s.id !== id),
+      schedules: state.schedules.filter((s) => s.id !== id),
     })),
 
   addTrackNotice: (notice) => {
@@ -367,7 +405,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       trackNotices: [notice, ...state.trackNotices],
     }))
     get().addNotification({
-      type: 'notice_new', category: 'action', isMandatory: true, recipientRole: 'learning_manager',
+      type: 'notice_new', category: 'action', recipientRole: 'learning_manager',
       title: `새 공지: ${notice.content.slice(0, 20)}`, description: notice.targetStaffName ? `${notice.targetStaffName}에게` : '전체 학관 대상',
       linkTo: '/', relatedTrackId: notice.trackId, relatedStaffId: notice.targetStaffId ?? undefined,
     })
@@ -401,7 +439,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }))
     if (notice) {
       get().addNotification({
-        type: 'notice_replied', category: 'action', isMandatory: false, recipientRole: 'operator',
+        type: 'notice_replied', category: 'action', recipientRole: 'operator',
         title: '공지 답변', description: content.slice(0, 50),
         linkTo: `/tracks/${notice.trackId}#notices`, relatedTrackId: notice.trackId,
       })
@@ -457,7 +495,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         c.id === cardId
           ? {
               ...c,
-              status: c.status === 'waiting' ? ('in-progress' as KanbanStatus) : c.status,
+              status: c.status === 'waiting' ? ('in_progress' as KanbanStatus) : c.status,
               messages: [
                 ...c.messages,
                 { id: `kbr-${Date.now()}`, authorName: '나', content, timestamp: now, isSelf: true } as StaffMessage,
@@ -499,7 +537,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
     if (card) {
       get().addNotification({
-        type: 'kanban_replied', category: 'action', isMandatory: false, recipientRole: 'operator',
+        type: 'kanban_replied', category: 'action', recipientRole: 'operator',
         title: `칸반 답변: ${card.title}`, description: content.slice(0, 50),
         linkTo: '/operators/op1',
       })
@@ -528,7 +566,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       kanbanCards: [newCard, ...state.kanbanCards],
     }))
     get().addNotification({
-      type: 'kanban_created', category: 'action', isMandatory: true, recipientRole: 'operator',
+      type: 'kanban_created', category: 'action', recipientRole: 'operator',
       title: `새 칸반 카드: ${card.title}`, description: `${card.requesterName} (${card.requesterRole})`,
       linkTo: '/operators/op1',
     })
@@ -583,7 +621,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           c.id === relatedKanbanId
             ? {
                 ...c,
-                status: c.status === 'waiting' ? ('in-progress' as KanbanStatus) : c.status,
+                status: c.status === 'waiting' ? ('in_progress' as KanbanStatus) : c.status,
                 messages: [
                   ...c.messages,
                   { id: newBubble.id, authorName: '나', content, timestamp: now, isSelf: true } as StaffMessage,
@@ -633,7 +671,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     const conv = get().staffConversations.find((c) => c.id === convId)
     if (conv) {
       get().addNotification({
-        type: 'message_new', category: 'action', isMandatory: true, recipientRole: 'learning_manager',
+        type: 'message_new', category: 'action', recipientRole: 'learning_manager',
         title: `새 메시지: ${conv.taskTitle}`, description: content.slice(0, 50),
         linkTo: '/',
       })
@@ -665,7 +703,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }))
     if (issue) {
       get().addNotification({
-        type: 'issue_replied', category: 'action', isMandatory: true, recipientRole: 'learning_manager',
+        type: 'issue_replied', category: 'action', recipientRole: 'learning_manager',
         title: `이슈 답변: ${issue.title}`, description: content.slice(0, 50),
         linkTo: '/', relatedIssueId: issueId,
       })
@@ -680,9 +718,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       ),
     }))
     if (issue) {
-      const statusLabel = status === 'pending' ? '대기' : status === 'in-progress' ? '처리중' : '완료'
+      const statusLabel = status === 'pending' ? '대기' : status === 'in_progress' ? '처리중' : '완료'
       get().addNotification({
-        type: 'issue_status_changed', category: 'action', isMandatory: false, recipientRole: 'learning_manager',
+        type: 'issue_status_changed', category: 'action', recipientRole: 'learning_manager',
         title: `이슈 상태변경: ${issue.title}`, description: `→ ${statusLabel}`,
         linkTo: '/', relatedIssueId: issueId,
       })
@@ -720,7 +758,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     })
     const staffName = staffCard?.name ?? '학관'
     get().addNotification({
-      type: 'vacation_registered', category: 'action', isMandatory: true, recipientRole: 'operator_manager',
+      type: 'vacation_registered', category: 'action', recipientRole: 'operator_manager',
       title: `휴가 등록: ${staffName}`, description: `${vacation.start} ~ ${vacation.end}, ${affectedTaskIds.length}건 미배정 발생`,
       linkTo: `/staff/${staffId}`, relatedStaffId: staffId,
     })
@@ -789,22 +827,28 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         } : undefined,
       }
 
-      const newChapters: ChapterInfo[] = data.chapters.map((ch) => ({
+      const now = new Date().toISOString()
+      const newChapterSchedules: UnifiedSchedule[] = data.chapters.map((ch) => ({
         id: ch.id,
-        name: ch.name,
+        title: ch.name,
+        type: 'chapter' as const,
+        source: 'system' as const,
         startDate: ch.startDate,
         endDate: ch.endDate,
         trackId,
+        createdAt: now,
       }))
 
-      const newSchedules: TrackSchedule[] = data.chapters.map((ch) => ({
+      const newCurriculumSchedules: UnifiedSchedule[] = data.chapters.map((ch) => ({
         id: `sch-${ch.id}`,
-        trackId,
         title: ch.name,
+        type: 'curriculum' as const,
+        source: 'system' as const,
         startDate: ch.startDate,
         endDate: ch.endDate,
-        source: 'system' as const,
-        category: '강의' as const,
+        trackId,
+        category: '강의',
+        createdAt: now,
       }))
 
       const newTrackTasks: TrackTask[] = data.tasks
@@ -828,7 +872,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       return {
         tracks: [...state.tracks, newTrack],
         plannerTracks: [...state.plannerTracks, newPlannerTrack],
-        trackSchedules: [...state.trackSchedules, ...newSchedules],
+        schedules: [...state.schedules, ...newChapterSchedules, ...newCurriculumSchedules],
         trackTasks: [...state.trackTasks, ...newTrackTasks],
       }
     }),
@@ -868,14 +912,28 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         })),
       }
 
-      const newSchedules: TrackSchedule[] = data.chapters.map((ch) => ({
-        id: `sch-${ch.id}`,
-        trackId,
+      const updateNow = new Date().toISOString()
+      const newChapterScheds: UnifiedSchedule[] = data.chapters.map((ch) => ({
+        id: ch.id,
         title: ch.name,
+        type: 'chapter' as const,
+        source: 'system' as const,
         startDate: ch.startDate,
         endDate: ch.endDate,
+        trackId,
+        createdAt: updateNow,
+      }))
+
+      const newCurrScheds: UnifiedSchedule[] = data.chapters.map((ch) => ({
+        id: `sch-${ch.id}`,
+        title: ch.name,
+        type: 'curriculum' as const,
         source: 'system' as const,
-        category: '강의' as const,
+        startDate: ch.startDate,
+        endDate: ch.endDate,
+        trackId,
+        category: '강의',
+        createdAt: updateNow,
       }))
 
       const newTrackTasks: TrackTask[] = data.tasks
@@ -899,9 +957,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       return {
         tracks: state.tracks.map(t => t.id === trackId ? updatedTrack : t),
         plannerTracks: state.plannerTracks.map(t => t.id === trackId ? updatedPlannerTrack : t),
-        trackSchedules: [
-          ...state.trackSchedules.filter(s => s.trackId !== trackId),
-          ...newSchedules,
+        schedules: [
+          ...state.schedules.filter(s => s.trackId !== trackId),
+          ...newChapterScheds,
+          ...newCurrScheds,
         ],
         trackTasks: [
           ...state.trackTasks.filter(t => t.trackId !== trackId),
@@ -910,12 +969,85 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       }
     }),
 
+  addManagerTask: (task) =>
+    set((state) => ({ managerTasks: [task, ...state.managerTasks] })),
+
+  updateManagerTaskStatus: (taskId, status) =>
+    set((state) => ({
+      managerTasks: state.managerTasks.map((t) =>
+        t.id === taskId
+          ? { ...t, status: status as UnifiedTask['status'], completedAt: status === 'completed' ? new Date().toTimeString().slice(0, 5) : (status !== 'completed' ? undefined : t.completedAt) }
+          : t,
+      ),
+    })),
+
+  removeManagerTask: (taskId) =>
+    set((state) => ({
+      managerTasks: state.managerTasks.filter((t) => t.id !== taskId),
+    })),
+
+  addManagerTaskMessage: (taskId, content, authorId, authorName, isSelf) =>
+    set((state) => ({
+      managerTasks: state.managerTasks.map((t) =>
+        t.id === taskId
+          ? { ...t, messages: [...t.messages, { id: `mtm_${Date.now()}`, authorId, authorName, content, timestamp: new Date().toTimeString().slice(0, 5), isSelf }] }
+          : t,
+      ),
+    })),
+
+  addCommMessage: (channelId, message) =>
+    set((state) => ({
+      commMessages: {
+        ...state.commMessages,
+        [channelId]: [...(state.commMessages[channelId] ?? []), message],
+      },
+    })),
+
+  addCommReaction: (channelId, msgId, emoji) =>
+    set((state) => {
+      const msgs = state.commMessages[channelId] ?? []
+      return {
+        commMessages: {
+          ...state.commMessages,
+          [channelId]: msgs.map((m) => {
+            if (m.id !== msgId) return m
+            const existing = m.reactions ?? []
+            const found = existing.find((r) => r.emoji === emoji)
+            if (found) return { ...m, reactions: existing.map((r) => r.emoji === emoji ? { ...r, count: r.count + 1 } : r) }
+            return { ...m, reactions: [...existing, { emoji, count: 1 }] }
+          }),
+        },
+      }
+    }),
+
+  updateStickyNote: (channelId, content, authorId, authorName) =>
+    set((state) => ({
+      commStickies: {
+        ...state.commStickies,
+        [channelId]: { channelId, content, authorId, authorName },
+      },
+    })),
+
+  deleteStickyNote: (channelId) =>
+    set((state) => {
+      const next = { ...state.commStickies }
+      delete next[channelId]
+      return { commStickies: next }
+    }),
+
+  markCommNotificationRead: (notificationId) =>
+    set((state) => ({
+      commNotifications: state.commNotifications.map((n) =>
+        n.id === notificationId ? { ...n, isRead: true } : n,
+      ),
+    })),
+
   deleteTrack: (trackId) =>
     set((state) => ({
       plannerTracks: state.plannerTracks.filter(t => t.id !== trackId),
       tracks: state.tracks.filter(t => t.id !== trackId),
       trackTasks: state.trackTasks.filter(t => t.trackId !== trackId),
-      trackSchedules: state.trackSchedules.filter(s => s.trackId !== trackId),
+      schedules: state.schedules.filter(s => s.trackId !== trackId),
       trackNotices: state.trackNotices.filter(n => n.trackId !== trackId),
     })),
 }))

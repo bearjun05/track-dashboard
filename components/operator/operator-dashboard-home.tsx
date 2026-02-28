@@ -1,7 +1,7 @@
 'use client'
 
-import { DashboardHome } from '@/components/manager/dashboard-home'
+import { ManagerOverview } from '@/components/manager/manager-overview'
 
 export function OperatorDashboardHome({ operatorId }: { operatorId?: string }) {
-  return <DashboardHome userId={operatorId ?? 'op1'} role="operator" />
+  return <ManagerOverview userId={operatorId ?? 'op1'} role="operator" />
 }

@@ -32,6 +32,7 @@ type AdHocScheduleMode = 'daily' | 'weekly' | 'track_phase'
 interface TemplateState {
   enabled: boolean
   time?: string
+  duration?: number
   daysOfWeek?: number[]
   biweekly?: boolean
   triggerOffset?: number
@@ -49,10 +50,28 @@ const DEFAULT_TIMES: Record<string, string> = {
   'tpl-40': '18:00',
 }
 
-const TIME_OPTIONS = Array.from({ length: 12 }, (_, i) => {
-  const h = i + 8
-  return `${String(h).padStart(2, '0')}:00`
+const TIME_OPTIONS = Array.from({ length: 23 }, (_, i) => {
+  const h = Math.floor(i / 2) + 8
+  const m = i % 2 === 0 ? '00' : '30'
+  return `${String(h).padStart(2, '0')}:${m}`
 })
+
+const DURATION_OPTIONS: { value: number; label: string }[] = [
+  { value: 30, label: '30분' },
+  { value: 60, label: '1시간' },
+  { value: 90, label: '1시간 30분' },
+  { value: 120, label: '2시간' },
+  { value: 150, label: '2시간 30분' },
+  { value: 180, label: '3시간' },
+]
+
+function addMinutesToTime(time: string, minutes: number): string {
+  const [h, m] = time.split(':').map(Number)
+  const total = h * 60 + m + minutes
+  const newH = Math.floor(total / 60)
+  const newM = total % 60
+  return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`
+}
 
 const DAY_LABELS_SHORT = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -134,6 +153,18 @@ function groupOnceByPhase(templates: TaskTemplateConfig[]) {
   return phases.filter(p => p.templates.length > 0)
 }
 
+function fallbackTrackStart(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 7)
+  return d.toISOString().split('T')[0]
+}
+
+function fallbackTrackEnd(start: string): string {
+  const d = new Date(start)
+  d.setMonth(d.getMonth() + 3)
+  return d.toISOString().split('T')[0]
+}
+
 function buildInitialStates(
   allTemplates: TaskTemplateConfig[],
   existingConfigs: Record<string, RecurrenceConfig>,
@@ -145,9 +176,18 @@ function buildInitialStates(
     const existingConfig = existingConfigs[tpl.id]
 
     if (hasExisting) {
+      const startTime = existingConfig?.time || (tpl.frequency === 'daily' ? DEFAULT_TIMES[tpl.id] : undefined)
+      let dur: number | undefined
+      if (startTime && existingConfig?.endTime) {
+        const [sh, sm] = startTime.split(':').map(Number)
+        const [eh, em] = existingConfig.endTime.split(':').map(Number)
+        dur = (eh * 60 + em) - (sh * 60 + sm)
+        if (dur <= 0) dur = 60
+      }
       map.set(tpl.id, {
         enabled: !!existingConfig || tpl.frequency === 'once' || tpl.frequency === 'per_chapter',
-        time: existingConfig?.time || (tpl.frequency === 'daily' ? DEFAULT_TIMES[tpl.id] : undefined),
+        time: startTime,
+        duration: dur,
         daysOfWeek: existingConfig?.daysOfWeek || (tpl.frequency === 'weekly' ? [1] : undefined),
         triggerOffset: tpl.triggerOffset,
         triggerType: tpl.triggerType,
@@ -181,6 +221,45 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
     () => buildInitialStates(allTemplates, data.recurrenceConfigs),
   )
 
+  const trackDuration = useMemo(() => {
+    const startStr = data.parsedSchedule?.trackStart ?? fallbackTrackStart()
+    const endStr = data.parsedSchedule?.trackEnd ?? fallbackTrackEnd(startStr)
+    const start = new Date(startStr)
+    const end = new Date(endStr)
+    let weekdays = 0
+    const d = new Date(start)
+    while (d <= end) {
+      const day = d.getDay()
+      if (day !== 0 && day !== 6) weekdays++
+      d.setDate(d.getDate() + 1)
+    }
+    const diffMs = end.getTime() - start.getTime()
+    const weeks = Math.max(1, Math.ceil(diffMs / (7 * 86400000)))
+    const months = Math.max(1, Math.ceil(diffMs / (30 * 86400000)))
+    return { weekdays, weeks, months }
+  }, [data.parsedSchedule])
+
+  const sectionEstimates = useMemo(() => {
+    const countEnabled = (templates: TaskTemplateConfig[]) =>
+      templates.filter(t => states.get(t.id)?.enabled).length
+
+    const dailyEnabled = countEnabled(grouped.daily)
+    const weeklyEnabled = countEnabled(grouped.weekly)
+    const chapterEnabled = countEnabled(grouped.per_chapter)
+    const monthlyEnabled = countEnabled(grouped.monthly)
+    const onceEnabled = countEnabled(grouped.once)
+    const adHocEnabled = countEnabled(grouped.ad_hoc)
+
+    return {
+      daily: { enabled: dailyEnabled, total: dailyEnabled * trackDuration.weekdays },
+      weekly: { enabled: weeklyEnabled, total: weeklyEnabled * trackDuration.weeks },
+      per_chapter: { enabled: chapterEnabled, total: chapterEnabled * Math.max(1, data.chapters.length) },
+      monthly: { enabled: monthlyEnabled, total: monthlyEnabled * trackDuration.months },
+      once: { enabled: onceEnabled, total: onceEnabled },
+      ad_hoc: { enabled: adHocEnabled, total: adHocEnabled },
+    }
+  }, [grouped, states, trackDuration, data.chapters.length])
+
   const sortedDaily = useMemo(() => {
     return [...grouped.daily].sort((a, b) => {
       const aTime = states.get(a.id)?.time
@@ -210,6 +289,15 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
       const next = new Map(prev)
       const cur = next.get(tplId)
       if (cur) next.set(tplId, { ...cur, time })
+      return next
+    })
+  }, [])
+
+  const updateDuration = useCallback((tplId: string, duration: number) => {
+    setStates(prev => {
+      const next = new Map(prev)
+      const cur = next.get(tplId)
+      if (cur) next.set(tplId, { ...cur, duration })
       return next
     })
   }, [])
@@ -261,7 +349,8 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
   }, [])
 
   useEffect(() => {
-    if (!data.parsedSchedule) return
+    const trackStart = data.parsedSchedule?.trackStart ?? fallbackTrackStart()
+    const trackEnd = data.parsedSchedule?.trackEnd ?? fallbackTrackEnd(trackStart)
 
     const configs: Record<string, RecurrenceConfig> = {}
     const enabledIds = new Set<string>()
@@ -274,7 +363,10 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
       if (!tpl) continue
 
       if (tpl.frequency === 'daily') {
-        configs[tplId] = { type: 'daily', time: state.time || '09:00', daysOfWeek: [1, 2, 3, 4, 5] }
+        const startTime = state.time || '09:00'
+        const dur = state.duration ?? 60
+        const computedEnd = startTime ? addMinutesToTime(startTime, dur) : undefined
+        configs[tplId] = { type: 'daily', time: startTime, endTime: computedEnd, daysOfWeek: [1, 2, 3, 4, 5] }
       } else if (tpl.frequency === 'weekly') {
         configs[tplId] = { type: 'weekly', time: '09:00', daysOfWeek: state.daysOfWeek || [1] }
       } else if (tpl.frequency === 'monthly') {
@@ -283,8 +375,8 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
     }
 
     const allTasks = generateTasks(
-      data.parsedSchedule.trackStart,
-      data.parsedSchedule.trackEnd,
+      trackStart,
+      trackEnd,
       data.chapters,
       configs,
     )
@@ -312,21 +404,29 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
   return (
     <div className="space-y-10 pb-4">
       {/* ── Daily ── */}
-      <Section meta={SECTION_META[0]} count={grouped.daily.length}>
+      <Section meta={SECTION_META[0]} count={grouped.daily.length} enabledCount={sectionEstimates.daily.enabled} estimatedTotal={sectionEstimates.daily.total}>
         <div className="space-y-0.5">
-          {sortedDaily.map(tpl => (
-            <TaskRow key={tpl.id} tpl={tpl} state={states.get(tpl.id)} onToggle={toggleTemplate}>
-              {states.get(tpl.id)?.enabled && (
-                <TimeSelect value={states.get(tpl.id)?.time} onChange={t => updateTime(tpl.id, t)} />
-              )}
-            </TaskRow>
-          ))}
+          {sortedDaily.map(tpl => {
+            const st = states.get(tpl.id)
+            return (
+              <TaskRow key={tpl.id} tpl={tpl} state={st} onToggle={toggleTemplate}>
+                {st?.enabled && (
+                  <TimeRangeSelect
+                    startTime={st.time}
+                    duration={st.duration}
+                    onStartChange={t => updateTime(tpl.id, t)}
+                    onDurationChange={d => updateDuration(tpl.id, d)}
+                  />
+                )}
+              </TaskRow>
+            )
+          })}
         </div>
         <AddButton label="매일 반복 업무 추가" onClick={() => { setCreateTarget('daily'); setCreateModalOpen(true) }} />
       </Section>
 
       {/* ── Weekly ── */}
-      <Section meta={SECTION_META[1]} count={grouped.weekly.length}>
+      <Section meta={SECTION_META[1]} count={grouped.weekly.length} enabledCount={sectionEstimates.weekly.enabled} estimatedTotal={sectionEstimates.weekly.total}>
         <div className="space-y-0.5">
           {grouped.weekly.map(tpl => {
             const st = states.get(tpl.id)
@@ -348,7 +448,7 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
       </Section>
 
       {/* ── Per Chapter ── */}
-      <Section meta={SECTION_META[2]} count={grouped.per_chapter.length}>
+      <Section meta={SECTION_META[2]} count={grouped.per_chapter.length} enabledCount={sectionEstimates.per_chapter.enabled} estimatedTotal={sectionEstimates.per_chapter.total} assignNote>
         <div className="space-y-0.5">
           {grouped.per_chapter.map(tpl => {
             const st = states.get(tpl.id)
@@ -368,7 +468,7 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
       </Section>
 
       {/* ── Monthly ── */}
-      <Section meta={SECTION_META[3]} count={grouped.monthly.length}>
+      <Section meta={SECTION_META[3]} count={grouped.monthly.length} enabledCount={sectionEstimates.monthly.enabled} estimatedTotal={sectionEstimates.monthly.total} assignNote>
         <div className="space-y-0.5">
           {grouped.monthly.map(tpl => {
             const st = states.get(tpl.id)
@@ -387,7 +487,7 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
       </Section>
 
       {/* ── Once (grouped by phase) ── */}
-      <Section meta={SECTION_META[4]} count={grouped.once.length}>
+      <Section meta={SECTION_META[4]} count={grouped.once.length} enabledCount={sectionEstimates.once.enabled} assignNote>
         {oncePhases.map(phase => (
           <div key={phase.key} className="space-y-0.5">
             <p className="pl-1 pt-2 text-[11px] font-semibold text-muted-foreground/70">{phase.label}</p>
@@ -410,7 +510,7 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
       </Section>
 
       {/* ── Ad Hoc ── */}
-      <Section meta={SECTION_META[5]} count={grouped.ad_hoc.length}>
+      <Section meta={SECTION_META[5]} count={grouped.ad_hoc.length} enabledCount={sectionEstimates.ad_hoc.enabled} assignNote>
         <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 px-3 py-2.5 mb-2">
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             체크하면 일정 설정이 필요해요.
@@ -427,12 +527,14 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
                   <AdHocScheduleSelect
                     mode={st.adHocMode ?? 'daily'}
                     time={st.time}
+                    duration={st.duration}
                     daysOfWeek={st.daysOfWeek || [1]}
                     biweekly={st.biweekly ?? false}
                     triggerType={st.triggerType ?? 'opening_d'}
                     triggerOffset={st.triggerOffset ?? 0}
                     onModeChange={m => updateAdHocMode(tpl.id, m)}
                     onTimeChange={t => updateTime(tpl.id, t)}
+                    onDurationChange={d => updateDuration(tpl.id, d)}
                     onDayToggle={d => toggleDay(tpl.id, d)}
                     onBiweeklyToggle={() => toggleBiweekly(tpl.id)}
                     onTriggerChange={(type, off) => updateTrigger(tpl.id, off, type)}
@@ -467,10 +569,16 @@ export function StepTaskGeneration({ data, updateData }: StepTaskGenerationProps
 function Section({
   meta,
   count,
+  enabledCount,
+  estimatedTotal,
+  assignNote,
   children,
 }: {
   meta: (typeof SECTION_META)[number]
   count: number
+  enabledCount?: number
+  estimatedTotal?: number
+  assignNote?: boolean
   children: React.ReactNode
 }) {
   const Icon = meta.icon
@@ -481,10 +589,20 @@ function Section({
           <Icon className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-semibold text-foreground">{meta.title}</h3>
           <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {count}
+            {enabledCount != null ? `${enabledCount}/${count}` : count}
           </span>
+          {estimatedTotal != null && estimatedTotal > 0 && (
+            <span className="rounded bg-foreground/[0.04] px-1.5 py-0.5 text-[10px] text-muted-foreground/70">
+              → 약 {estimatedTotal.toLocaleString()}개 생성
+            </span>
+          )}
         </div>
         <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{meta.description}</p>
+        {assignNote && (
+          <p className="mt-1 text-[11px] text-amber-600/70">
+            이 업무의 담당자는 트랙 운영 시작 후 배정합니다. (다음 단계에서 배정 불가)
+          </p>
+        )}
       </div>
       {children}
     </section>
@@ -530,10 +648,10 @@ function TaskRow({
 
 // ─── Time Selector ───────────────────────────────────────────────
 
-function TimeSelect({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+function TimeSelect({ value, onChange, placeholder }: { value?: string; onChange: (v: string) => void; placeholder?: string }) {
   const [open, setOpen] = useState(false)
   const isUnset = !value
-  const display = isUnset ? '시간 미지정' : value
+  const display = isUnset ? (placeholder ?? '시간 미지정') : value
 
   return (
     <div className="relative">
@@ -574,6 +692,68 @@ function TimeSelect({ value, onChange }: { value?: string; onChange: (v: string)
                 )}
               >
                 {t}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── Time Range Selector (start + duration) ─────────────────────
+
+function TimeRangeSelect({ startTime, duration, onStartChange, onDurationChange }: {
+  startTime?: string; duration?: number
+  onStartChange: (v: string) => void; onDurationChange: (d: number) => void
+}) {
+  const hasTime = !!startTime
+  const endTimeLabel = hasTime && duration ? addMinutesToTime(startTime!, duration) : null
+
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      <TimeSelect value={startTime} onChange={onStartChange} />
+      {hasTime && (
+        <>
+          <DurationSelect value={duration ?? 60} onChange={onDurationChange} />
+          {endTimeLabel && (
+            <span className="text-[10px] font-mono text-muted-foreground/60">~{endTimeLabel}</span>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+function DurationSelect({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [open, setOpen] = useState(false)
+  const label = DURATION_OPTIONS.find(o => o.value === value)?.label ?? `${value}분`
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex shrink-0 items-center gap-1 rounded bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+      >
+        {label}
+        <ChevronDown className="h-3 w-3" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full z-50 mt-1 rounded-md border bg-popover p-1 shadow-md">
+            {DURATION_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { onChange(opt.value); setOpen(false) }}
+                className={cn(
+                  'block w-full rounded px-3 py-1 text-left text-[11px] transition-colors',
+                  opt.value === value ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+                )}
+              >
+                {opt.label}
               </button>
             ))}
           </div>
@@ -814,15 +994,17 @@ const AD_HOC_MODES: { value: AdHocScheduleMode; label: string; desc: string }[] 
   { value: 'track_phase', label: '트랙 흐름', desc: '개강/수료 기준 시점에 배정' },
 ]
 
-function AdHocScheduleSelect({ mode, time, daysOfWeek, biweekly, triggerType, triggerOffset, onModeChange, onTimeChange, onDayToggle, onBiweeklyToggle, onTriggerChange }: {
+function AdHocScheduleSelect({ mode, time, duration, daysOfWeek, biweekly, triggerType, triggerOffset, onModeChange, onTimeChange, onDurationChange, onDayToggle, onBiweeklyToggle, onTriggerChange }: {
   mode: AdHocScheduleMode
   time?: string
+  duration?: number
   daysOfWeek: number[]
   biweekly: boolean
   triggerType: string
   triggerOffset: number
   onModeChange: (m: AdHocScheduleMode) => void
   onTimeChange: (t: string) => void
+  onDurationChange: (d: number) => void
   onDayToggle: (d: number) => void
   onBiweeklyToggle: () => void
   onTriggerChange: (type: string, offset: number) => void
@@ -830,7 +1012,11 @@ function AdHocScheduleSelect({ mode, time, daysOfWeek, biweekly, triggerType, tr
   const [open, setOpen] = useState(false)
 
   let display: string
-  if (mode === 'daily') display = time ? `매일 ${time}` : '매일 (시간 미지정)'
+  if (mode === 'daily') {
+    if (time && duration) display = `매일 ${time}~${addMinutesToTime(time, duration)}`
+    else if (time) display = `매일 ${time}`
+    else display = '매일 (시간 미지정)'
+  }
   else if (mode === 'weekly') {
     const dayStr = daysOfWeek.map(d => DAY_LABELS_SHORT[d]).join('·')
     display = `${biweekly ? '격주' : '매주'} ${dayStr}`
@@ -868,23 +1054,40 @@ function AdHocScheduleSelect({ mode, time, daysOfWeek, biweekly, triggerType, tr
             <div className="my-1 border-t border-border" />
 
             {mode === 'daily' && (
-              <div className="px-2 py-1">
-                <p className="mb-1 text-[10px] text-muted-foreground">시간 선택</p>
-                <div className="flex flex-wrap gap-0.5">
-                  <button
-                    type="button"
-                    onClick={() => { onTimeChange(''); setOpen(false) }}
-                    className={cn('rounded px-2 py-0.5 text-[10px] transition-colors', !time ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground')}
-                  >미지정</button>
-                  {TIME_OPTIONS.map(t => (
+              <div className="px-2 py-1 space-y-2">
+                <div>
+                  <p className="mb-1 text-[10px] text-muted-foreground">시작 시간</p>
+                  <div className="flex flex-wrap gap-0.5">
                     <button
-                      key={t}
                       type="button"
-                      onClick={() => { onTimeChange(t); setOpen(false) }}
-                      className={cn('rounded px-2 py-0.5 text-[10px] font-mono transition-colors', t === time ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
-                    >{t}</button>
-                  ))}
+                      onClick={() => { onTimeChange(''); setOpen(false) }}
+                      className={cn('rounded px-2 py-0.5 text-[10px] transition-colors', !time ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground')}
+                    >미지정</button>
+                    {TIME_OPTIONS.map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => onTimeChange(t)}
+                        className={cn('rounded px-2 py-0.5 text-[10px] font-mono transition-colors', t === time ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+                      >{t}</button>
+                    ))}
+                  </div>
                 </div>
+                {time && (
+                  <div>
+                    <p className="mb-1 text-[10px] text-muted-foreground">소요 시간</p>
+                    <div className="flex flex-wrap gap-0.5">
+                      {DURATION_OPTIONS.map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => { onDurationChange(opt.value); setOpen(false) }}
+                          className={cn('rounded px-2 py-0.5 text-[10px] transition-colors', opt.value === (duration ?? 60) ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+                        >{opt.label}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

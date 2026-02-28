@@ -82,7 +82,8 @@ export type TaskStats = { completed: number; inProgress: number; overdue: number
 
 export const STATUS_CONFIG: Record<TrackTaskStatus, { label: string; cls: string }> = {
   pending: { label: '대기', cls: 'bg-secondary text-muted-foreground' },
-  'in-progress': { label: '진행중', cls: 'bg-foreground/[0.06] text-foreground' },
+  in_progress: { label: '진행중', cls: 'bg-foreground/[0.06] text-foreground' },
+  pending_review: { label: '확인요청', cls: 'bg-amber-500/10 text-amber-600' },
   completed: { label: '완료', cls: 'bg-foreground/[0.06] text-muted-foreground' },
   overdue: { label: '기한초과', cls: 'bg-destructive/10 text-destructive' },
   unassigned: { label: '미배정', cls: 'bg-foreground/[0.06] text-foreground/60' },

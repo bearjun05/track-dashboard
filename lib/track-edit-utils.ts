@@ -1,4 +1,5 @@
-import type { PlannerTrackCard, TrackTask, TrackSchedule, ChapterInfo } from './admin-mock-data'
+import type { PlannerTrackCard, TrackTask } from './admin-mock-data'
+import type { UnifiedSchedule } from '@/components/schedule/schedule-types'
 import type {
   TrackCreationData,
   SubjectCard,
@@ -25,8 +26,8 @@ function parsePeriod(period: string): { start: string; end: string } {
 export function buildTrackCreationData(
   track: PlannerTrackCard,
   trackTasks: TrackTask[],
-  trackSchedules: TrackSchedule[],
-  allChapters: ChapterInfo[] = [],
+  trackSchedules: UnifiedSchedule[],
+  allChapters: UnifiedSchedule[] = [],
 ): TrackCreationData {
   const { name, round } = parseTrackName(track.name)
   const { start: trackStart, end: trackEnd } = parsePeriod(track.period)
@@ -59,11 +60,11 @@ export function buildTrackCreationData(
     )
     return {
       id: ch.id,
-      name: ch.name,
+      name: ch.title,
       order: i + 1,
       cards: chapterCards.length > 0 ? chapterCards : [{
         id: `card-${ch.id}`,
-        subjectName: ch.name,
+        subjectName: ch.title,
         startDate: ch.startDate,
         endDate: ch.endDate,
         totalHours: Math.ceil(
@@ -107,9 +108,11 @@ export function buildTrackCreationData(
   const recurrenceConfigs: Record<string, RecurrenceConfig> = {}
   for (const t of generatedTasks) {
     if (t.frequency === 'daily') {
+      const raw = tasks.find(tt => (tt.templateId || tt.id) === t.templateId)
       recurrenceConfigs[t.templateId] = {
         type: 'daily',
         time: t.scheduledTime,
+        endTime: raw?.dueTime,
       }
     }
   }
