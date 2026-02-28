@@ -113,7 +113,7 @@ http://localhost:3000 접속 후 상단 DEBUG 바에서 역할(총괄/운영/학
 | 트랙 (PlannerTrackCard) | 3개 | AI 7기, BE 5기, AI 8기 |
 | 학관 (Staff) | 7명 | track1: 3명, track2: 2명, track3: 2명 |
 | 운영매 (Operator) | 3명 | op1 이운영, op2 김운영, op3 박운영 |
-| TrackTasks | ~230개 | 당일(2/11) ~80개 + 과거/미래 분산 |
+| TrackTasks | ~530개 | 2/11 당일 ~80개 + 2/23~3/13 매 평일 자동 생성 ~297개 (3개 트랙, `_genExtTasks()`) |
 | Schedules | ~53개 | 3개 트랙에 chapter/curriculum/operation/event/personal |
 | Notifications | ~28개 | SYS/ACT/THR 전체 타입 커버 |
 | ManagerTasks | 10개 | 총괄/운영매 개인 업무 |
@@ -132,12 +132,19 @@ http://localhost:3000 접속 후 상단 DEBUG 바에서 역할(총괄/운영/학
 - `lib/role-store.ts` — 역할 상수 (인증 시스템으로 대체)
 - `lib/date-constants.ts` — 날짜 유틸 (공유 가능)
 
+### Mock 데이터 생성 범위
+
+- **TrackTasks**: 2026-01-26 ~ 2026-03-13 (약 7주). 당일(2/11) 집중 + 2/23~3/13 매 평일 자동 생성 (`_genExtTasks()` 헬퍼 함수)
+- **Schedules**: 3개 트랙의 chapter/curriculum/operation/event가 각 트랙 기간 전체 커버
+- **Status 분배**: 과거=70%완료+15%진행+10%지연+5%확인요청, 최근=혼합, 미래=80%대기+15%진행+5%미배정
+- 날짜를 앞뒤로 이동해도 한 달 이상 데이터가 있어 빈 화면 없음
+
 ### Mock 데이터 제거 순서 (권장)
 
 1. 백엔드 API 엔드포인트 구축
 2. `lib/admin-store.ts`의 초기값을 API fetch로 변경
 3. 스토어 액션(addTrackTask, updateStatus 등)에 API 호출 추가
-4. `lib/admin-mock-data.ts`에서 `export const mock*` 상수들 제거
+4. `lib/admin-mock-data.ts`에서 `export const mock*` 상수들 + `_genExtTasks()` 함수 제거
 5. `lib/interview-mock-data.ts` 제거
 6. 빌드 확인
 

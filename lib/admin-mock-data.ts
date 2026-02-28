@@ -1012,6 +1012,117 @@ export const mockPlannerTracks: PlannerTrackCard[] = [
 
 // -- Track Tasks (트랙별 전체 Task 목록) --
 
+// 2026-02-23 ~ 2026-03-13 평일 daily/milestone/manual 태스크 자동 생성
+function _genExtTasks(): TrackTask[] {
+  const result: TrackTask[] = []
+  const dates = [
+    '2026-02-23','2026-02-24','2026-02-25','2026-02-26','2026-02-27',
+    '2026-03-02','2026-03-03','2026-03-04','2026-03-05','2026-03-06',
+    '2026-03-09','2026-03-10','2026-03-11','2026-03-12','2026-03-13',
+  ]
+  const opMap: Record<string, [string, string]> = {
+    track1: ['op1', '이운영'], track2: ['op2', '김운영'], track3: ['op3', '박운영'],
+  }
+  const trackDefs = [
+    {
+      id: 'track1', n: '1',
+      staff: [['staff1','김학관'],['staff2','이학관'],['staff3','박학관']],
+      tasks: [
+        ['출석 체크','tpl-40','09:00','09:30'],
+        ['입·퇴실 공지','tpl-43','09:00','09:30'],
+        ['데일리 일정 공지','tpl-43','09:00','09:30'],
+        ['오전 팀순회','tpl-41','10:00','11:00'],
+        ['수강생 출결 리포트','tpl-44','11:00','12:00'],
+        ['개인 정비 시간 공지','tpl-43','13:00','13:30'],
+        ['오후 팀순회','tpl-42','14:30','15:30'],
+        ['일일 보고서 작성','tpl-45','17:30','18:00'],
+      ],
+    },
+    {
+      id: 'track2', n: '2',
+      staff: [['staff4','정학관'],['staff5','한학관']],
+      tasks: [
+        ['출석 체크','tpl-40','09:00','09:30'],
+        ['일정 공지','tpl-43','09:00','09:30'],
+        ['오전 팀순회','tpl-41','10:00','11:00'],
+        ['수강생 진도 체크','tpl-44','11:00','12:00'],
+        ['오후 팀순회','tpl-42','14:30','15:30'],
+        ['일일 보고서 작성','tpl-45','17:30','18:00'],
+      ],
+    },
+    {
+      id: 'track3', n: '3',
+      staff: [['staff6','최학관'],['staff7','강학관']],
+      tasks: [
+        ['출석 체크','tpl-40','09:00','09:30'],
+        ['오전 팀순회','tpl-41','10:00','11:00'],
+        ['수강생 학습 현황 점검','tpl-44','11:00','12:00'],
+        ['오후 팀순회','tpl-42','14:30','15:30'],
+        ['일일 보고서 작성','tpl-45','17:30','18:00'],
+      ],
+    },
+  ]
+
+  let seed = 42
+  const rand = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff }
+  const pickStatus = (d: string): TrackTaskStatus => {
+    const r = rand()
+    if (d < '2026-02-28') return r < 0.70 ? 'completed' : r < 0.85 ? 'in_progress' : r < 0.95 ? 'overdue' : 'pending_review'
+    if (d <= '2026-03-02') return r < 0.40 ? 'completed' : r < 0.70 ? 'in_progress' : r < 0.85 ? 'pending' : r < 0.95 ? 'overdue' : 'pending_review'
+    return r < 0.80 ? 'pending' : r < 0.95 ? 'in_progress' : 'unassigned'
+  }
+  const cTime = (due: string) => {
+    const [h, m] = due.split(':').map(Number)
+    const off = Math.floor(rand() * 20) + 5
+    const tot = h * 60 + m - off
+    return `${String(Math.floor(tot / 60)).padStart(2, '0')}:${String(tot % 60).padStart(2, '0')}`
+  }
+
+  for (const date of dates) {
+    const mm = date.slice(5).replace('-', '')
+    for (const tr of trackDefs) {
+      const [opId, opName] = opMap[tr.id]
+      tr.tasks.forEach(([title, tpl, st, dt], i) => {
+        const [sId, sName] = tr.staff[i % tr.staff.length]
+        const s = pickStatus(date)
+        const task: TrackTask = {
+          id: `tt-gen-${tr.n}-${mm}-${i + 1}`, title, type: 'daily', templateId: tpl,
+          trackId: tr.id, status: s, scheduledDate: date, scheduledTime: st, dueTime: dt, messages: [],
+        }
+        if (s !== 'unassigned') { task.assigneeId = sId; task.assigneeName = sName }
+        else { task.unassignedReason = '담당자 미지정' }
+        if (s === 'completed') task.completedAt = cTime(dt)
+        if (s === 'overdue' && rand() < 0.4) task.priority = 'urgent'
+        if (s === 'pending_review') { task.reviewerId = opId; task.reviewerName = opName }
+        else if (rand() < 0.15) { task.reviewerId = opId; task.reviewerName = opName }
+        result.push(task)
+      })
+    }
+  }
+
+  // Milestones (2 per track)
+  result.push(
+    { id: 'tt-gen-ms-1-1', title: '중간 프로젝트 평가', type: 'milestone', completionType: 'evidence', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'completed', scheduledDate: '2026-02-26', endDate: '2026-02-27', scheduledTime: '10:00', dueTime: '17:00', completedAt: '16:30', reviewerId: 'op1', reviewerName: '이운영', messages: [] },
+    { id: 'tt-gen-ms-1-2', title: '최종 포트폴리오 제출 마감', type: 'milestone', completionType: 'evidence', trackId: 'track1', assigneeId: 'staff2', assigneeName: '이학관', status: 'pending', priority: 'important', scheduledDate: '2026-03-10', endDate: '2026-03-12', scheduledTime: '09:00', dueTime: '18:00', messages: [] },
+    { id: 'tt-gen-ms-2-1', title: 'BE 프로젝트 코드리뷰 마감', type: 'milestone', completionType: 'evidence', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'completed', scheduledDate: '2026-02-25', endDate: '2026-02-26', scheduledTime: '10:00', dueTime: '17:00', completedAt: '16:45', reviewerId: 'op2', reviewerName: '김운영', messages: [] },
+    { id: 'tt-gen-ms-2-2', title: 'BE 5기 최종 평가', type: 'milestone', completionType: 'evidence', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', priority: 'important', scheduledDate: '2026-03-11', endDate: '2026-03-13', scheduledTime: '09:00', dueTime: '18:00', messages: [] },
+    { id: 'tt-gen-ms-3-1', title: 'AI 8기 중간고사', type: 'milestone', completionType: 'evidence', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'completed', scheduledDate: '2026-02-24', endDate: '2026-02-25', scheduledTime: '10:00', dueTime: '17:00', completedAt: '16:50', reviewerId: 'op3', reviewerName: '박운영', messages: [] },
+    { id: 'tt-gen-ms-3-2', title: '팀 프로젝트 최종 발표', type: 'milestone', completionType: 'evidence', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', priority: 'important', scheduledDate: '2026-03-09', endDate: '2026-03-11', scheduledTime: '10:00', dueTime: '17:00', messages: [] },
+  )
+
+  // Manual tasks (2 per track)
+  result.push(
+    { id: 'tt-gen-mn-1-1', title: '학부모 상담 미팅', type: 'manual', trackId: 'track1', assigneeId: 'staff3', assigneeName: '박학관', status: 'completed', scheduledDate: '2026-02-25', scheduledTime: '14:00', dueTime: '15:00', completedAt: '14:55', description: '학부모 상담 – 수강생 진로 논의', messages: [] },
+    { id: 'tt-gen-mn-1-2', title: '외부 강연 행사 준비', type: 'manual', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', priority: 'important', scheduledDate: '2026-03-06', scheduledTime: '13:00', dueTime: '17:00', description: 'AI 업계 전문가 초청 강연 행사 준비', messages: [] },
+    { id: 'tt-gen-mn-2-1', title: '기업 연계 설명회', type: 'manual', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'completed', scheduledDate: '2026-02-27', scheduledTime: '15:00', dueTime: '17:00', completedAt: '16:50', description: '취업 연계 기업 설명회 진행 지원', messages: [] },
+    { id: 'tt-gen-mn-2-2', title: '수료식 리허설', type: 'manual', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: '2026-03-12', scheduledTime: '14:00', dueTime: '16:00', description: 'BE 5기 수료식 리허설 진행', messages: [] },
+    { id: 'tt-gen-mn-3-1', title: '멘토 간담회', type: 'manual', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'completed', scheduledDate: '2026-02-26', scheduledTime: '16:00', dueTime: '17:00', completedAt: '17:00', description: '현업 멘토 초청 간담회 운영', messages: [] },
+    { id: 'tt-gen-mn-3-2', title: '해커톤 행사 운영', type: 'manual', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', priority: 'important', scheduledDate: '2026-03-05', endDate: '2026-03-06', scheduledTime: '09:00', dueTime: '18:00', description: 'AI 8기 내부 해커톤 행사 운영', messages: [] },
+  )
+
+  return result
+}
+
 export const mockTrackTasks: TrackTask[] = [
   // === track1 (AI 트랙 7기) - staff1 김학관 ===
   { id: 'tt1', title: '출석 체크', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'completed', scheduledDate: '2026-02-11', scheduledTime: '09:00', dueTime: '09:30', completedAt: '09:25', messages: [] },
@@ -1391,6 +1502,9 @@ export const mockTrackTasks: TrackTask[] = [
   { id: 'tt3-f11', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff6', assigneeName: '최학관', status: 'pending', scheduledDate: '2026-02-20', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
   { id: 'tt3-f12', title: '출석 체크', type: 'daily', trackId: 'track3', assigneeId: 'staff7', assigneeName: '강학관', status: 'pending', scheduledDate: '2026-02-20', scheduledTime: '09:00', dueTime: '09:30', messages: [] },
   { id: 'tt3-f13', title: '수강생 환경설정 지원', type: 'milestone', trackId: 'track3', status: 'unassigned', scheduledDate: '2026-02-20', endDate: '2026-02-22', scheduledTime: '10:00', dueTime: '17:00', unassignedReason: '담당자 미지정', messages: [] },
+
+  // === Generated extended tasks (2026-02-23 ~ 2026-03-13) ===
+  ..._genExtTasks(),
 ]
 
 // -- Track Notices (공지) --
