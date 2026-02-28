@@ -113,7 +113,7 @@ http://localhost:3000 접속 후 상단 DEBUG 바에서 역할(총괄/운영/학
 | 트랙 (PlannerTrackCard) | 3개 | AI 7기, BE 5기, AI 8기 |
 | 학관 (Staff) | 7명 | track1: 3명, track2: 2명, track3: 2명 |
 | 운영매 (Operator) | 3명 | op1 이운영, op2 김운영, op3 박운영 |
-| TrackTasks | ~530개 | 2/11 당일 ~80개 + 2/23~3/13 매 평일 자동 생성 ~297개 (3개 트랙, `_genExtTasks()`) |
+| TrackTasks | ~530개 | "오늘" 기준 동적 생성. 과거 10일 + 미래 30일 매 평일 데이터 (`_genExtTasks()`) |
 | Schedules | ~53개 | 3개 트랙에 chapter/curriculum/operation/event/personal |
 | Notifications | ~28개 | SYS/ACT/THR 전체 타입 커버 |
 | ManagerTasks | 10개 | 총괄/운영매 개인 업무 |
@@ -134,10 +134,12 @@ http://localhost:3000 접속 후 상단 DEBUG 바에서 역할(총괄/운영/학
 
 ### Mock 데이터 생성 범위
 
-- **TrackTasks**: 2026-01-26 ~ 2026-03-13 (약 7주). 당일(2/11) 집중 + 2/23~3/13 매 평일 자동 생성 (`_genExtTasks()` 헬퍼 함수)
-- **Schedules**: 3개 트랙의 chapter/curriculum/operation/event가 각 트랙 기간 전체 커버
+- **모든 날짜가 동적**: `_d(offset)` 헬퍼로 "오늘" 기준 상대 날짜 생성. 어느 날 실행해도 데이터 일관성 유지
+- **TrackTasks**: 오늘 기준 과거 10일 ~ 미래 30일 매 평일 데이터 + `_genExtTasks()`로 추가 생성
+- **Schedules**: 3개 트랙의 chapter/curriculum/operation/event가 트랙 기간 전체 커버 (동적 기간)
 - **Status 분배**: 과거=70%완료+15%진행+10%지연+5%확인요청, 최근=혼합, 미래=80%대기+15%진행+5%미배정
-- 날짜를 앞뒤로 이동해도 한 달 이상 데이터가 있어 빈 화면 없음
+- 날짜를 앞뒤로 한 달 이상 이동해도 빈 화면 없음
+- **주의**: 동적 날짜이므로 `admin-mock-data.ts`에 하드코딩된 날짜 문자열이 없음. 모두 `_d()`, `_ts()`, `_iso()` 등의 헬퍼 함수 사용
 
 ### Mock 데이터 제거 순서 (권장)
 
