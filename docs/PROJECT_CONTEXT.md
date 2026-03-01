@@ -184,6 +184,7 @@ lib/
 docs/
   PROJECT_CONTEXT.md               # 이 문서
   CONTEXT_GRAPH.md                 # 라우트-문서 매핑 그래프 + 컴포넌트 디렉토리 맵
+  ARCHITECTURE_DIAGRAM.md          # 시각 아키텍처 다이어그램 (역할별 페이지 맵, 대시보드 구조, 위저드 흐름)
   TASK_MODEL.md                    # UnifiedTask(22속성) + UnifiedSchedule(13속성) 모델 정의
   NOTIFICATION_POLICY.md           # 알림 시스템 정책 (역할별 라우팅, 에스컬레이션, 긴급 처리)
   APP_INFRA.md                     # 인프라/공통 컴포넌트 정책

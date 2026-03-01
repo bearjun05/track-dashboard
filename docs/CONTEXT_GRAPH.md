@@ -35,6 +35,8 @@
 
 ## 2. 아키텍처 다이어그램
 
+> 역할별 페이지 접근 맵, 대시보드 내부 구조, 위저드 흐름 등 **시각 자료**는 `docs/ARCHITECTURE_DIAGRAM.md`를 참조하세요.
+
 ```mermaid
 graph TB
     subgraph layout [app/layout.tsx]
