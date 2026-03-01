@@ -486,7 +486,7 @@ export const mockOperatorTasks: Record<string, OperatorTask[]> = {
     { id: 'ot1', title: 'AI 7기 중간 평가 기준 수립', dueDate: _md(-1), isCompleted: true, completedAt: _mdt(-2, '17:00') },
     { id: 'ot2', title: '멘토 일정 조율', dueDate: _md(1), isCompleted: false },
     { id: 'ot3', title: '학관 주간 미팅 준비', dueDate: _md(-1), isCompleted: true, completedAt: _mdt(-1, '09:00') },
-    { id: 'ot4', title: 'BE 5기 챕터2 커리큘럼 검토', dueDate: _md(0), isCompleted: false },
+    { id: 'ot4', title: 'BE 5기 챕터 2 커리큘럼 검토', dueDate: _md(0), isCompleted: false },
     { id: 'ot5', title: 'AI 7기 중간 평가 준비', dueDate: _md(-1), isCompleted: false },
     { id: 'ot6', title: '수강생 출결 리포트 작성', dueDate: _md(-2), isCompleted: true, completedAt: _mdt(-2, '16:30') },
     { id: 'ot7', title: '교육장 시설 점검 보고', dueDate: _md(-3), isCompleted: true, completedAt: _mdt(-3, '18:00') },
@@ -507,7 +507,7 @@ export const mockOperatorTasks: Record<string, OperatorTask[]> = {
   op2: [
     { id: 'ot21', title: 'AI 8기 OT 준비', dueDate: _md(4), isCompleted: false },
     { id: 'ot22', title: '학관 면접 진행', dueDate: _md(1), isCompleted: true, completedAt: _mdt(1, '15:00') },
-    { id: 'ot23', title: 'AI 8기 커리큘럼 확정', dueDate: _md(-1), isCompleted: true, completedAt: _mdt(-1, '14:00') },
+    { id: 'ot23', title: 'AI 8기 챕터 1 커리큘럼 확정', dueDate: _md(-1), isCompleted: true, completedAt: _mdt(-1, '14:00') },
   ],
 }
 
@@ -811,7 +811,7 @@ export const mockKanbanCards: KanbanCard[] = [
     requesterRole: '운영',
     requesterName: '김운영',
     title: '자료 수정 진행중',
-    content: 'BE 5기 챕터3 실습 자료에 오류가 있어 수정 중입니다.',
+    content: 'BE 5기 챕터 3 실습 자료에 오류가 있어 수정 중입니다.',
     timeAgo: '1시간 전',
     createdAt: _ts(0, '09:00'),
     isUrgent: false,
@@ -940,7 +940,7 @@ export const mockChatRooms: ChatRoom[] = [
     unreadCount: 3,
     hasUrgent: false,
     messages: [
-      { id: 'rm1-1', isSelf: false, authorName: '이운영', message: 'AI 8기 커리큘럼 초안 작성했습니다.', time: '08:20' },
+      { id: 'rm1-1', isSelf: false, authorName: '이운영', message: 'AI 8기 챕터 1 커리큘럼 초안 작성했습니다.', time: '08:20' },
       { id: 'rm1-2', isSelf: true, authorName: '나', message: '확인했습니다. 2장 내용 괜찮네요.', time: '08:35' },
       { id: 'rm1-3', isSelf: false, authorName: '이운영', message: '오전 팀순회 보고 올립니다.', time: '09:00' },
       { id: 'rm1-4', isSelf: false, authorName: '이운영', message: 'OT 자료 업데이트 관련 확인 부탁드립니다.', time: '09:15', taskTitle: '자료 업데이트', taskContent: 'AI 8기 OT 자료를 최신 버전으로 업데이트해야 합니다.', relatedKanbanId: 'kb3' },
@@ -1189,14 +1189,14 @@ export const mockTrackTasks: TrackTask[] = [
     { id: 'ttm-f2', authorName: '김학관', content: '네, 11시 반에 면담 잡았습니다.', timestamp: '09:10', isSelf: false },
   ]},
   { id: 'tt5-c', title: '점심시간 교실 관리', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '12:00', dueTime: '13:00', messages: [] },
-  { id: 'tt3-a', title: '수강생 만족도 설문 배포', type: 'milestone', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '13:00', dueTime: '13:30', description: '챕터3 종료 시점 만족도 조사 배포. 구글폼 링크 단톡방 공유.', messages: [] },
+  { id: 'tt3-a', title: '수강생 만족도 설문 배포', type: 'milestone', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '13:00', dueTime: '13:30', description: '챕터 3 종료 시점 만족도 조사 배포. 설문 링크 단톡방 공유.', messages: [] },
   { id: 'tt3', title: '오후 팀순회', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'in_progress', scheduledDate: _d(0), scheduledTime: '14:00', dueTime: '15:00', messages: [] },
   { id: 'tt3-b', title: '퇴소자 행정 처리 (박지민)', type: 'manual', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '15:00', dueTime: '16:00', description: '박지민 퇴소 서류 작성 및 NCS 시스템 반영', messages: [
     { id: 'ttm-d1', authorName: '이운영', content: '박지민 학생 퇴소 확정입니다. 행정 처리 오늘 중으로 부탁해요.', timestamp: '11:00', isSelf: true },
   ]},
   { id: 'tt3-c', title: '튜터 일일 리포트 취합', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '16:00', dueTime: '17:00', messages: [] },
   { id: 'tt4', title: '일일 보고서 작성', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '17:00', dueTime: '18:00', messages: [] },
-  { id: 'tt4-b', title: '익일 수업 자료 사전 확인', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '17:30', dueTime: '18:00', description: '내일 챕터4 시작 – 강사에게 자료 수령 여부 확인', messages: [] },
+  { id: 'tt4-b', title: '익일 수업 자료 사전 확인', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '17:30', dueTime: '18:00', description: '내일 챕터 4 시작 – 강사에게 자료 수령 여부 확인', messages: [] },
 
   // === track1 - staff1 김학관 (시간 미지정 task) ===
   // 운영매 요청 task
@@ -1209,7 +1209,7 @@ export const mockTrackTasks: TrackTask[] = [
   { id: 'tt-ut3', title: '결석 사유서 미제출자 독촉', type: 'manual', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), description: `${_md(-4)}~${_md(-1)} 결석자 중 사유서 미제출 3명에게 연락`, messages: []},
   // 시스템 자동 배정 task (시간 없음)
   { id: 'tt-ut4', title: '주간 출결 현황 정리', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'pending', scheduledDate: _d(0), endDate: _d(0), description: '금주 출결 데이터 취합 및 이상 수강생 리스트 작성', messages: [] },
-  { id: 'tt-ut5', title: 'NCS 자기평가서 입력 안내', type: 'milestone', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'completed', scheduledDate: _d(0), completedAt: '10:20', description: '챕터3 종료에 따른 NCS 자기평가서 입력 안내 공지', messages: [] },
+  { id: 'tt-ut5', title: 'NCS 자기평가서 입력 안내', type: 'milestone', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'completed', scheduledDate: _d(0), completedAt: '10:20', description: '챕터 3 종료에 따른 NCS 자기평가서 입력 안내 공지', messages: [] },
   { id: 'tt-ut6', title: '수강생 HRD-Net 출석 동기화 확인', type: 'daily', trackId: 'track1', assigneeId: 'staff1', assigneeName: '김학관', status: 'in_progress', scheduledDate: _d(0), description: 'HRD-Net 시스템과 실제 출석 데이터 비교 확인', messages: [] },
 
   // === track1 - staff1 김학관 (업무 요청 request_sent) ===
@@ -1490,7 +1490,7 @@ export const mockTrackTasks: TrackTask[] = [
   { id: 'tt2-e09', title: '조회 및 공지 전달', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'completed', scheduledDate: _d(0), scheduledTime: '09:30', dueTime: '10:00', completedAt: '09:52', messages: [] },
   { id: 'tt2-e10', title: '수강생 면담 기록', type: 'manual', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'completed', scheduledDate: _d(0), scheduledTime: '11:00', dueTime: '12:00', completedAt: '11:50', messages: [] },
   { id: 'tt2-e11', title: '점심시간 교실 관리', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'in_progress', scheduledDate: _d(0), scheduledTime: '12:00', dueTime: '13:00', messages: [] },
-  { id: 'tt2-e12', title: '수강생 만족도 설문 배포', type: 'milestone', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', priority: 'important', scheduledDate: _d(0), scheduledTime: '13:00', dueTime: '14:00', description: '챕터2 종료 시점 만족도 조사', messages: [] },
+  { id: 'tt2-e12', title: '수강생 만족도 설문 배포', type: 'milestone', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', priority: 'important', scheduledDate: _d(0), scheduledTime: '13:00', dueTime: '14:00', description: '챕터 2 종료 시점 만족도 조사', messages: [] },
   { id: 'tt2-e13', title: '튜터 일일 리포트 취합', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: _d(0), scheduledTime: '16:00', dueTime: '17:00', messages: [] },
   { id: 'tt2-e14', title: 'HRD-Net 출석 동기화 확인', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'overdue', scheduledDate: _d(0), scheduledTime: '10:30', dueTime: '11:00', messages: [] },
   { id: 'tt2-e15', title: '주간 출결 현황 정리', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: _d(0), description: '금주 출결 데이터 취합', messages: [] },
@@ -1531,7 +1531,7 @@ export const mockTrackTasks: TrackTask[] = [
   { id: 'tt2-f08', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: _d(2), scheduledTime: '09:00', dueTime: '09:30', messages: [] },
   { id: 'tt2-f09', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: _d(5), scheduledTime: '09:00', dueTime: '09:30', messages: [] },
   { id: 'tt2-f10', title: '오전 팀순회', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: _d(5), scheduledTime: '10:00', dueTime: '11:00', messages: [] },
-  { id: 'tt2-f11', title: '챕터3 OT 진행', type: 'milestone', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', priority: 'important', scheduledDate: _d(5), scheduledTime: '14:00', dueTime: '16:00', messages: [] },
+  { id: 'tt2-f11', title: '챕터 3 OT 진행', type: 'milestone', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', priority: 'important', scheduledDate: _d(5), scheduledTime: '14:00', dueTime: '16:00', messages: [] },
   { id: 'tt2-f12', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff4', assigneeName: '정학관', status: 'pending', scheduledDate: _d(7), scheduledTime: '09:00', dueTime: '09:30', messages: [] },
   { id: 'tt2-f13', title: '출석 체크', type: 'daily', trackId: 'track2', assigneeId: 'staff5', assigneeName: '한학관', status: 'pending', scheduledDate: _d(7), scheduledTime: '09:00', dueTime: '09:30', messages: [] },
 
@@ -1625,7 +1625,7 @@ export const mockTrackNotices: TrackNotice[] = [
   // === track2 공지 ===
   {
     id: 'tn6', trackId: 'track2', targetStaffId: null, targetStaffName: null,
-    authorName: '김운영', content: '챕터2 종료에 따라 수강생 만족도 설문을 오늘 중으로 배포해주세요. 구글폼 링크는 공유폴더에 있습니다.',
+    authorName: '김운영', content: '챕터 2 종료에 따라 수강생 만족도 설문을 오늘 중으로 배포해주세요. 설문 링크는 공유폴더에 있습니다.',
     createdAt: _ts(0, '09:00'), expiresAt: _d(1),
     readBy: ['staff4'],
     replies: [
@@ -1641,7 +1641,7 @@ export const mockTrackNotices: TrackNotice[] = [
   },
   {
     id: 'tn8', trackId: 'track2', targetStaffId: null, targetStaffName: null,
-    authorName: '김운영', content: `다음 주 월요일(${_md(5)})부터 챕터3 Spring Boot 실습이 시작됩니다. 환경 설정 가이드를 미리 공유해주세요.`,
+    authorName: '김운영', content: `다음 주 월요일(${_md(5)})부터 챕터 3 실습이 시작됩니다. 환경 설정 가이드를 미리 공유해주세요.`,
     createdAt: _ts(-1, '17:00'), expiresAt: _d(5),
     readBy: ['staff4', 'staff5'],
     replies: [
@@ -1693,48 +1693,48 @@ import type { UnifiedSchedule } from '@/components/schedule/schedule-types'
 export const mockSchedules: UnifiedSchedule[] = [
   // === Chapters (type: 'chapter') ===
   // track1 — AI 백엔드 아키텍처 7기 (15주, 2026-01-12 ~ 2026-04-22)
-  { id: 'ch1', title: '챕터 1: 백엔드 기초 & MSA', type: 'chapter', source: 'system', startDate: _d(-30), endDate: _d(-19), trackId: 'track1', createdAt: _d(-41) },
-  { id: 'ch2', title: '챕터 2: AI 비즈니스 프로젝트', type: 'chapter', source: 'system', startDate: _d(-16), endDate: _d(-5), trackId: 'track1', createdAt: _d(-41) },
-  { id: 'ch3', title: '챕터 3: 심화 기술 (캐싱/스트림)', type: 'chapter', source: 'system', startDate: _d(-2), endDate: _d(9), trackId: 'track1', createdAt: _d(-41) },
-  { id: 'ch4', title: '챕터 4: AI 시스템 설계', type: 'chapter', source: 'system', startDate: _d(12), endDate: _d(30), trackId: 'track1', createdAt: _d(-41) },
-  { id: 'ch5', title: '챕터 5: 장애 대응 & 모니터링', type: 'chapter', source: 'system', startDate: _d(33), endDate: _d(37), trackId: 'track1', createdAt: _d(-41) },
-  { id: 'ch6', title: '챕터 6: 최종 프로젝트 (대용량 트래픽)', type: 'chapter', source: 'system', startDate: _d(40), endDate: _d(70), trackId: 'track1', createdAt: _d(-41) },
+  { id: 'ch1', title: '챕터 1', type: 'chapter', source: 'system', startDate: _d(-30), endDate: _d(-19), trackId: 'track1', createdAt: _d(-41) },
+  { id: 'ch2', title: '챕터 2', type: 'chapter', source: 'system', startDate: _d(-16), endDate: _d(-5), trackId: 'track1', createdAt: _d(-41) },
+  { id: 'ch3', title: '챕터 3', type: 'chapter', source: 'system', startDate: _d(-2), endDate: _d(9), trackId: 'track1', createdAt: _d(-41) },
+  { id: 'ch4', title: '챕터 4', type: 'chapter', source: 'system', startDate: _d(12), endDate: _d(30), trackId: 'track1', createdAt: _d(-41) },
+  { id: 'ch5', title: '챕터 5', type: 'chapter', source: 'system', startDate: _d(33), endDate: _d(37), trackId: 'track1', createdAt: _d(-41) },
+  { id: 'ch6', title: '챕터 6', type: 'chapter', source: 'system', startDate: _d(40), endDate: _d(70), trackId: 'track1', createdAt: _d(-41) },
   // track2 — BE 트랙 5기
-  { id: 'ch7', title: '챕터 1: OT 및 환경 설정', type: 'chapter', source: 'system', startDate: _d(-9), endDate: _d(-3), trackId: 'track2', createdAt: _d(-27) },
-  { id: 'ch8', title: '챕터 2: 기초 이론', type: 'chapter', source: 'system', startDate: _d(-2), endDate: _d(4), trackId: 'track2', createdAt: _d(-27) },
+  { id: 'ch7', title: '챕터 1', type: 'chapter', source: 'system', startDate: _d(-9), endDate: _d(-3), trackId: 'track2', createdAt: _d(-27) },
+  { id: 'ch8', title: '챕터 2', type: 'chapter', source: 'system', startDate: _d(-2), endDate: _d(4), trackId: 'track2', createdAt: _d(-27) },
 
   // === Curriculum (type: 'curriculum', source: 'system') ===
   // track1 — 시스템 일정 (커리큘럼 기반)
-  { id: 'sch1', title: '자바 스프링 백엔드 개발', type: 'curriculum', source: 'system', startDate: _d(-30), endDate: _d(-29), trackId: 'track1', category: '강의', createdAt: _d(-41) },
-  { id: 'sch2', title: 'MSA (Microservice Architecture)', type: 'curriculum', source: 'system', startDate: _d(-28), endDate: _d(-20), trackId: 'track1', category: '강의', createdAt: _d(-41) },
-  { id: 'sch3', title: 'AI 검증 비즈니스 프로젝트', type: 'curriculum', source: 'system', startDate: _d(-19), endDate: _d(-5), trackId: 'track1', category: '프로젝트', createdAt: _d(-41) },
-  { id: 'sch4', title: '프로젝트 관리 심화', type: 'curriculum', source: 'system', startDate: _d(-2), endDate: _d(0), trackId: 'track1', category: '강의', createdAt: _d(-41) },
-  { id: 'sch5', title: '인메모리 저장소 및 캐싱 전략', type: 'curriculum', source: 'system', startDate: _d(1), endDate: _d(5), trackId: 'track1', category: '강의', createdAt: _d(-41) },
-  { id: 'sch6', title: '대규모 스트림 처리', type: 'curriculum', source: 'system', startDate: _d(6), endDate: _d(8), trackId: 'track1', category: '강의', createdAt: _d(-41) },
-  { id: 'sch7', title: '대규모 AI 시스템 설계 프로젝트', type: 'curriculum', source: 'system', startDate: _d(9), endDate: _d(26), trackId: 'track1', category: '프로젝트', createdAt: _d(-41) },
-  { id: 'sch8', title: '모니터링 시스템 및 시큐어 코딩', type: 'curriculum', source: 'system', startDate: _d(27), endDate: _d(30), trackId: 'track1', category: '강의', createdAt: _d(-41) },
-  { id: 'sch9', title: '장애 대응', type: 'curriculum', source: 'system', startDate: _d(33), endDate: _d(34), trackId: 'track1', category: '강의', createdAt: _d(-41) },
-  { id: 'sch10', title: '실무 기반 대용량 트래픽 처리 프로젝트', type: 'curriculum', source: 'system', startDate: _d(35), endDate: _d(70), trackId: 'track1', category: '프로젝트', createdAt: _d(-41) },
+  { id: 'sch1', title: '강의 1-1', type: 'curriculum', source: 'system', startDate: _d(-30), endDate: _d(-29), trackId: 'track1', category: '강의', createdAt: _d(-41) },
+  { id: 'sch2', title: '강의 1-2', type: 'curriculum', source: 'system', startDate: _d(-28), endDate: _d(-20), trackId: 'track1', category: '강의', createdAt: _d(-41) },
+  { id: 'sch3', title: '프로젝트 A', type: 'curriculum', source: 'system', startDate: _d(-19), endDate: _d(-5), trackId: 'track1', category: '프로젝트', createdAt: _d(-41) },
+  { id: 'sch4', title: '강의 3-1', type: 'curriculum', source: 'system', startDate: _d(-2), endDate: _d(0), trackId: 'track1', category: '강의', createdAt: _d(-41) },
+  { id: 'sch5', title: '강의 3-2', type: 'curriculum', source: 'system', startDate: _d(1), endDate: _d(5), trackId: 'track1', category: '강의', createdAt: _d(-41) },
+  { id: 'sch6', title: '강의 3-3', type: 'curriculum', source: 'system', startDate: _d(6), endDate: _d(8), trackId: 'track1', category: '강의', createdAt: _d(-41) },
+  { id: 'sch7', title: '프로젝트 B', type: 'curriculum', source: 'system', startDate: _d(9), endDate: _d(26), trackId: 'track1', category: '프로젝트', createdAt: _d(-41) },
+  { id: 'sch8', title: '강의 4-1', type: 'curriculum', source: 'system', startDate: _d(27), endDate: _d(30), trackId: 'track1', category: '강의', createdAt: _d(-41) },
+  { id: 'sch9', title: '강의 5-1', type: 'curriculum', source: 'system', startDate: _d(33), endDate: _d(34), trackId: 'track1', category: '강의', createdAt: _d(-41) },
+  { id: 'sch10', title: '프로젝트 C', type: 'curriculum', source: 'system', startDate: _d(35), endDate: _d(70), trackId: 'track1', category: '프로젝트', createdAt: _d(-41) },
   // track2 — BE 트랙 5기
-  { id: 'sch17', title: 'OT 및 환경 설정', type: 'curriculum', source: 'system', startDate: _d(-9), endDate: _d(-3), trackId: 'track2', category: '강의', createdAt: _d(-27) },
-  { id: 'sch18', title: '기초 이론 강의', type: 'curriculum', source: 'system', startDate: _d(-2), endDate: _d(4), trackId: 'track2', category: '강의', createdAt: _d(-27) },
+  { id: 'sch17', title: '강의 1-1', type: 'curriculum', source: 'system', startDate: _d(-9), endDate: _d(-3), trackId: 'track2', category: '강의', createdAt: _d(-27) },
+  { id: 'sch18', title: '강의 2-1', type: 'curriculum', source: 'system', startDate: _d(-2), endDate: _d(4), trackId: 'track2', category: '강의', createdAt: _d(-27) },
 
   // === Operation Periods (type: 'operation_period', source: 'manual') ===
   // track1 — 운기매/운영매가 설정한 기간형 운영 일정
-  { id: 'op-p1', title: '면담 주간', type: 'operation_period', source: 'manual', startDate: _d(-2), endDate: _d(2), trackId: 'track1', description: '챕터3 시작 — 전체 수강생 1:1 면담 진행', creatorId: 'op1', createdAt: _d(-8) },
-  { id: 'op-p2', title: '중간평가 주간', type: 'operation_period', source: 'manual', startDate: _d(5), endDate: _d(8), trackId: 'track1', description: '챕터3 종료 중간평가 실시 및 결과 정리', creatorId: 'op1', createdAt: _d(-6) },
-  { id: 'op-p3', title: 'AI 프로젝트 주간', type: 'operation_period', source: 'manual', startDate: _d(9), endDate: _d(23), trackId: 'track1', description: '대규모 AI 시스템 설계 프로젝트 집중 기간', creatorId: 'mgr1', createdAt: _d(-1) },
-  { id: 'op-p4', title: '코드리뷰 기간', type: 'operation_period', source: 'manual', startDate: _d(7), endDate: _d(8), trackId: 'track1', description: '챕터3 종료 전 전체 코드 리뷰', creatorId: 'op1', createdAt: _d(-1) },
+  { id: 'op-p1', title: '면담 주간', type: 'operation_period', source: 'manual', startDate: _d(-2), endDate: _d(2), trackId: 'track1', description: '챕터 3 시작 — 전체 수강생 1:1 면담 진행', creatorId: 'op1', createdAt: _d(-8) },
+  { id: 'op-p2', title: '중간평가 주간', type: 'operation_period', source: 'manual', startDate: _d(5), endDate: _d(8), trackId: 'track1', description: '챕터 3 종료 중간평가 실시 및 결과 정리', creatorId: 'op1', createdAt: _d(-6) },
+  { id: 'op-p3', title: '프로젝트 주간', type: 'operation_period', source: 'manual', startDate: _d(9), endDate: _d(23), trackId: 'track1', description: '프로젝트 B 집중 기간', creatorId: 'mgr1', createdAt: _d(-1) },
+  { id: 'op-p4', title: '코드리뷰 기간', type: 'operation_period', source: 'manual', startDate: _d(7), endDate: _d(8), trackId: 'track1', description: '챕터 3 종료 전 전체 코드 리뷰', creatorId: 'op1', createdAt: _d(-1) },
   { id: 'op-p5', title: '수료 준비 주간', type: 'operation_period', source: 'manual', startDate: _d(61), endDate: _d(70), trackId: 'track1', description: '최종 발표, 포트폴리오, 수료 행정 처리', creatorId: 'mgr1', createdAt: _d(32) },
 
   // === Track Events (type: 'track_event', source: 'manual') ===
   // track1 — 단발성 운영 이벤트
   { id: 'sch11', title: '멘토링 데이', type: 'track_event', source: 'manual', startDate: _d(-4), endDate: _d(-4), trackId: 'track1', category: '행사', description: '현업 멘토 초청 네트워킹', creatorId: 'op1', createdAt: _d(-10) },
   { id: 'sch12', title: '팀빌딩 행사', type: 'track_event', source: 'manual', startDate: _d(3), endDate: _d(3), trackId: 'track1', category: '행사', description: '팀 결속력 강화 워크숍', creatorId: 'op1', createdAt: _d(-10) },
-  { id: 'sch13', title: '보충수업 (MSA)', type: 'track_event', source: 'manual', startDate: _d(-22), endDate: _d(-21), trackId: 'track1', category: '강의', description: 'MSA 기초 부족 학생 대상 보충', creatorId: 'op1', createdAt: _d(-27) },
-  { id: 'sch14', title: '중간 코드 리뷰', type: 'track_event', source: 'manual', startDate: _d(8), endDate: _d(8), trackId: 'track1', category: '평가', description: '챕터 3 종료 전 중간 코드 리뷰', creatorId: 'op1', createdAt: _d(-1) },
-  { id: 'sch15', title: '특별 세미나', type: 'track_event', source: 'manual', startDate: _d(22), endDate: _d(22), trackId: 'track1', category: '기타', description: 'AI 인프라 트렌드 세미나', creatorId: 'op1', createdAt: _d(9) },
-  { id: 'sch16', title: '최종 발표', type: 'track_event', source: 'manual', startDate: _d(70), endDate: _d(70), trackId: 'track1', category: '평가', description: '최종 프로젝트 발표 및 평가', creatorId: 'op1', createdAt: _d(18) },
+  { id: 'sch13', title: '보충수업', type: 'track_event', source: 'manual', startDate: _d(-22), endDate: _d(-21), trackId: 'track1', category: '강의', description: '챕터 1 기초 부족 학생 대상 보충', creatorId: 'op1', createdAt: _d(-27) },
+  { id: 'sch14', title: '중간 코드 리뷰', type: 'track_event', source: 'manual', startDate: _d(8), endDate: _d(8), trackId: 'track1', category: '평가', description: '챕터 3 종료 전 코드 리뷰', creatorId: 'op1', createdAt: _d(-1) },
+  { id: 'sch15', title: '특별 세미나', type: 'track_event', source: 'manual', startDate: _d(22), endDate: _d(22), trackId: 'track1', category: '기타', description: '외부 전문가 초청 세미나', creatorId: 'op1', createdAt: _d(9) },
+  { id: 'sch16', title: '최종 발표', type: 'track_event', source: 'manual', startDate: _d(70), endDate: _d(70), trackId: 'track1', category: '평가', description: '프로젝트 C 최종 발표 및 평가', creatorId: 'op1', createdAt: _d(18) },
 
   // === Personal Schedules (type: 'personal', source: 'manual') ===
   { id: 'ps1', title: '김민수 면담', type: 'personal', source: 'manual', startDate: _d(0), endDate: _d(0), startTime: '14:00', creatorId: 'staff1', description: '진도 상담', createdAt: _ts(-1, '09:00') },
@@ -1743,33 +1743,33 @@ export const mockSchedules: UnifiedSchedule[] = [
   { id: 'ps4', title: '박지훈 면담', type: 'personal', source: 'manual', startDate: _d(2), endDate: _d(2), startTime: '15:00', creatorId: 'staff1', description: '출결 문제', createdAt: _ts(0, '08:00') },
 
   // === track2 — BE 트랙 5기 Chapters (2026.01.01 ~ 06.30) ===
-  { id: 'ch9', title: '챕터 3: Spring Boot 실습', type: 'chapter', source: 'system', startDate: _d(5), endDate: _d(30), trackId: 'track2', createdAt: _d(-27) },
-  { id: 'ch10', title: '챕터 4: 프로젝트 & 배포', type: 'chapter', source: 'system', startDate: _d(33), endDate: _d(139), trackId: 'track2', createdAt: _d(-27) },
+  { id: 'ch9', title: '챕터 3', type: 'chapter', source: 'system', startDate: _d(5), endDate: _d(30), trackId: 'track2', createdAt: _d(-27) },
+  { id: 'ch10', title: '챕터 4', type: 'chapter', source: 'system', startDate: _d(33), endDate: _d(139), trackId: 'track2', createdAt: _d(-27) },
 
   // === track2 — Curriculum ===
-  { id: 'sch19', title: 'Spring MVC 패턴', type: 'curriculum', source: 'system', startDate: _d(5), endDate: _d(11), trackId: 'track2', category: '강의', createdAt: _d(-27) },
-  { id: 'sch20', title: 'JPA & 데이터베이스 설계', type: 'curriculum', source: 'system', startDate: _d(12), endDate: _d(18), trackId: 'track2', category: '강의', createdAt: _d(-27) },
-  { id: 'sch21', title: 'REST API 개발', type: 'curriculum', source: 'system', startDate: _d(19), endDate: _d(30), trackId: 'track2', category: '강의', createdAt: _d(-27) },
-  { id: 'sch22', title: '팀 프로젝트: API 서버 구축', type: 'curriculum', source: 'system', startDate: _d(33), endDate: _d(139), trackId: 'track2', category: '프로젝트', createdAt: _d(-27) },
+  { id: 'sch19', title: '강의 3-1', type: 'curriculum', source: 'system', startDate: _d(5), endDate: _d(11), trackId: 'track2', category: '강의', createdAt: _d(-27) },
+  { id: 'sch20', title: '강의 3-2', type: 'curriculum', source: 'system', startDate: _d(12), endDate: _d(18), trackId: 'track2', category: '강의', createdAt: _d(-27) },
+  { id: 'sch21', title: '강의 3-3', type: 'curriculum', source: 'system', startDate: _d(19), endDate: _d(30), trackId: 'track2', category: '강의', createdAt: _d(-27) },
+  { id: 'sch22', title: '프로젝트 A', type: 'curriculum', source: 'system', startDate: _d(33), endDate: _d(139), trackId: 'track2', category: '프로젝트', createdAt: _d(-27) },
 
   // === track2 — Operation Periods ===
-  { id: 'op-p6', title: '면담 주간', type: 'operation_period', source: 'manual', startDate: _d(5), endDate: _d(9), trackId: 'track2', description: '챕터3 시작 — 전체 수강생 1:1 면담 진행', creatorId: 'op1', createdAt: _d(-1) },
-  { id: 'op-p7', title: '중간평가 주간', type: 'operation_period', source: 'manual', startDate: _d(26), endDate: _d(30), trackId: 'track2', description: '챕터3 종료 중간평가 실시', creatorId: 'op1', createdAt: _d(14) },
+  { id: 'op-p6', title: '면담 주간', type: 'operation_period', source: 'manual', startDate: _d(5), endDate: _d(9), trackId: 'track2', description: '챕터 3 시작 — 전체 수강생 1:1 면담 진행', creatorId: 'op1', createdAt: _d(-1) },
+  { id: 'op-p7', title: '중간평가 주간', type: 'operation_period', source: 'manual', startDate: _d(26), endDate: _d(30), trackId: 'track2', description: '챕터 3 종료 중간평가 실시', creatorId: 'op1', createdAt: _d(14) },
 
   // === track2 — Track Events ===
-  { id: 'sch23', title: '멘토링 데이', type: 'track_event', source: 'manual', startDate: _d(17), endDate: _d(17), trackId: 'track2', category: '행사', description: '현업 백엔드 개발자 초청 네트워킹', creatorId: 'op1', createdAt: _d(4) },
-  { id: 'sch24', title: '코드 리뷰 세션', type: 'track_event', source: 'manual', startDate: _d(23), endDate: _d(23), trackId: 'track2', category: '평가', description: '챕터3 종료 전 코드 리뷰', creatorId: 'op1', createdAt: _d(9) },
+  { id: 'sch23', title: '멘토링 데이', type: 'track_event', source: 'manual', startDate: _d(17), endDate: _d(17), trackId: 'track2', category: '행사', description: '현업 개발자 초청 네트워킹', creatorId: 'op1', createdAt: _d(4) },
+  { id: 'sch24', title: '코드 리뷰 세션', type: 'track_event', source: 'manual', startDate: _d(23), endDate: _d(23), trackId: 'track2', category: '평가', description: '챕터 3 종료 전 코드 리뷰', creatorId: 'op1', createdAt: _d(9) },
 
   // === track3 — AI 트랙 8기 Chapters (2026.03.01 ~ 08.31) ===
-  { id: 'ch11', title: '챕터 1: AI 기초 & Python', type: 'chapter', source: 'system', startDate: _d(18), endDate: _d(58), trackId: 'track3', createdAt: _d(4) },
-  { id: 'ch12', title: '챕터 2: 머신러닝 심화', type: 'chapter', source: 'system', startDate: _d(61), endDate: _d(114), trackId: 'track3', createdAt: _d(4) },
-  { id: 'ch13', title: '챕터 3: 프로젝트 & 포트폴리오', type: 'chapter', source: 'system', startDate: _d(117), endDate: _d(201), trackId: 'track3', createdAt: _d(4) },
+  { id: 'ch11', title: '챕터 1', type: 'chapter', source: 'system', startDate: _d(18), endDate: _d(58), trackId: 'track3', createdAt: _d(4) },
+  { id: 'ch12', title: '챕터 2', type: 'chapter', source: 'system', startDate: _d(61), endDate: _d(114), trackId: 'track3', createdAt: _d(4) },
+  { id: 'ch13', title: '챕터 3', type: 'chapter', source: 'system', startDate: _d(117), endDate: _d(201), trackId: 'track3', createdAt: _d(4) },
 
   // === track3 — Curriculum ===
-  { id: 'sch25', title: 'Python 프로그래밍 기초', type: 'curriculum', source: 'system', startDate: _d(18), endDate: _d(37), trackId: 'track3', category: '강의', createdAt: _d(4) },
-  { id: 'sch26', title: '데이터 분석 기초', type: 'curriculum', source: 'system', startDate: _d(40), endDate: _d(58), trackId: 'track3', category: '강의', createdAt: _d(4) },
-  { id: 'sch27', title: '머신러닝 알고리즘', type: 'curriculum', source: 'system', startDate: _d(61), endDate: _d(93), trackId: 'track3', category: '강의', createdAt: _d(4) },
-  { id: 'sch28', title: '딥러닝 & 자연어처리', type: 'curriculum', source: 'system', startDate: _d(96), endDate: _d(114), trackId: 'track3', category: '강의', createdAt: _d(4) },
+  { id: 'sch25', title: '강의 1-1', type: 'curriculum', source: 'system', startDate: _d(18), endDate: _d(37), trackId: 'track3', category: '강의', createdAt: _d(4) },
+  { id: 'sch26', title: '강의 1-2', type: 'curriculum', source: 'system', startDate: _d(40), endDate: _d(58), trackId: 'track3', category: '강의', createdAt: _d(4) },
+  { id: 'sch27', title: '강의 2-1', type: 'curriculum', source: 'system', startDate: _d(61), endDate: _d(93), trackId: 'track3', category: '강의', createdAt: _d(4) },
+  { id: 'sch28', title: '강의 2-2', type: 'curriculum', source: 'system', startDate: _d(96), endDate: _d(114), trackId: 'track3', category: '강의', createdAt: _d(4) },
 
   // === track3 — Operation Periods ===
   { id: 'op-p8', title: 'OT 및 환경설정 주간', type: 'operation_period', source: 'manual', startDate: _d(18), endDate: _d(23), trackId: 'track3', description: '트랙 OT, 개발 환경 구축, 팀 편성', creatorId: 'op3', createdAt: _d(9) },
@@ -1907,7 +1907,7 @@ export const mockCommNotifications: CommSystemNotification[] = [
   { id: 'n-4', type: 'task_assigned', content: '이운영 매니저가 업무를 배정했습니다', timestamp: _iso(0, '09:00:00'), taskId: 'tt3', taskTitle: '프로젝트 중간점검', trackId: 'track1', trackName: 'AI 트랙 7기' },
   { id: 'n-5', type: 'reminder', content: '30분 후 시작 예정입니다', timestamp: _iso(0, '08:30:00'), taskId: 'tt2', taskTitle: '수강생 면담 준비', trackId: 'track2', trackName: 'BE 트랙 5기' },
   { id: 'n-6', type: 'review_done', content: '김운영 매니저가 확인을 완료했습니다', timestamp: _iso(0, '10:15:00'), taskId: 'tt1', taskTitle: '출석 현황 보고', trackId: 'track2', trackName: 'BE 트랙 5기' },
-  { id: 'n-7', type: 'general', content: '내일 챕터4 수업이 예정되어 있습니다. 자료를 미리 확인해주세요.', timestamp: _iso(0, '11:00:00') },
+  { id: 'n-7', type: 'general', content: '내일 챕터 4 수업이 예정되어 있습니다. 자료를 미리 확인해주세요.', timestamp: _iso(0, '11:00:00') },
 ]
 
 export const mockCommMessages: Record<string, CommMessage[]> = {
@@ -1951,7 +1951,7 @@ export const mockCommMessages: Record<string, CommMessage[]> = {
 }
 
 export const mockCommStickies: Record<string, StickyNotice> = {
-  'chat:op1:staff1': { channelId: 'chat:op1:staff1', content: '챕터3 프로젝트 — 궁금한 점 편하게 물어봐 주세요', authorId: 'op1', authorName: '이운영' },
+  'chat:op1:staff1': { channelId: 'chat:op1:staff1', content: '챕터 3 프로젝트 — 궁금한 점 편하게 물어봐 주세요', authorId: 'op1', authorName: '이운영' },
   'chat:mgr1:op1': { channelId: 'chat:mgr1:op1', content: '주간 보고 매주 금요일 오전까지', authorId: 'mgr1', authorName: '박총괄' },
 }
 

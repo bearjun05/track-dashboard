@@ -2,7 +2,7 @@
 
 > 이 문서는 프로젝트의 목적, 구조, 설계 결정을 정리한 것입니다.
 > 새로 합류하는 사람이나 AI 에이전트가 맥락을 빠르게 파악할 수 있도록 작성되었습니다.
-> 최종 갱신: 2026-02-28
+> 최종 갱신: 2026-03-01
 
 ---
 
@@ -192,6 +192,7 @@ docs/
     TRACK_PAGE.md                  # /tracks/[id] 페이지 정책
     MANAGER_PAGE.md                # /managers/[id] 페이지 정책
     COMM_WIDGET.md                 # 글로벌 소통 위젯 정책
+    ADMIN_WIZARD_PAGE.md           # /admin/tracks/new, /admin/tracks/[id]/edit 위저드 정책
 ```
 
 ---

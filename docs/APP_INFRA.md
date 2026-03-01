@@ -206,7 +206,7 @@ const ROLE_DEFAULT_PATH = {
 
 | 내보내기 | 타입 | 설명 |
 |---------|------|------|
-| `TODAY_STR` | `string` | 오늘 날짜 (YYYY-MM-DD), `new Date().toISOString().split('T')[0]` |
+| `TODAY_STR` | `string` | 오늘 날짜 (YYYY-MM-DD), 로컬 시간 기반 (`toLocalDateStr`) |
 | `TODAY` | `Date` | 오늘 9시 기준 Date 객체 |
 | `getWeekRange(todayStr?)` | `[string, string]` | 월~일 주간 범위 반환 |
 | `getMonthRange(todayStr?)` | `[string, string]` | 월초~월말 범위 반환 |

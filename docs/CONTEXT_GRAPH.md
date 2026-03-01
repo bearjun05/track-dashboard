@@ -15,10 +15,10 @@
 | `/tracks/[id]` | → `/tracks/[id]/tasks` 리다이렉트 | `docs/pages/TRACK_PAGE.md` |
 | `/tracks/[id]/tasks` | 트랙 Task 시트 | `docs/pages/TRACK_PAGE.md` |
 | `/tracks/[id]/schedule` | 트랙 일정 캘린더 | `docs/pages/TRACK_PAGE.md` |
-| `/admin` | 시스템 관리 메뉴 | (TODO: ADMIN_PAGE.md) |
-| `/admin/tracks/new` | 트랙 생성 위저드 (8단계) | (TODO: ADMIN_PAGE.md) |
-| `/admin/tracks/edit` | 트랙 수정 선택 | (TODO: ADMIN_PAGE.md) |
-| `/admin/tracks/[id]/edit` | 트랙 편집 | (TODO: ADMIN_PAGE.md) |
+| `/admin` | 시스템 관리 메뉴 | `docs/pages/ADMIN_WIZARD_PAGE.md` |
+| `/admin/tracks/new` | 트랙 생성 위저드 (8단계) | `docs/pages/ADMIN_WIZARD_PAGE.md` |
+| `/admin/tracks/edit` | 트랙 수정 선택 | `docs/pages/ADMIN_WIZARD_PAGE.md` |
+| `/admin/tracks/[id]/edit` | 트랙 편집 | `docs/pages/ADMIN_WIZARD_PAGE.md` |
 | `/admin/notifications` | 알림 설정 | `docs/NOTIFICATION_POLICY.md` |
 | `/debug/tasks` | Task 컴포넌트 디버그 | `docs/APP_INFRA.md` |
 
@@ -64,6 +64,7 @@ graph TB
         StaffDoc["pages/STAFF_PAGE.md"]
         TrackDoc["pages/TRACK_PAGE.md"]
         CommDoc["pages/COMM_WIDGET.md"]
+        WizardDoc["pages/ADMIN_WIZARD_PAGE.md"]
         TaskModel["TASK_MODEL.md"]
         NotifPolicy["NOTIFICATION_POLICY.md"]
         ProjectCtx["PROJECT_CONTEXT.md"]
@@ -78,11 +79,15 @@ graph TB
     TrackSchedule --> TrackDoc
     FloatingCommWidget --> CommDoc
     AppShell --> AppInfra
+    AdminHome --> WizardDoc
+    AdminNew --> WizardDoc
+    AdminEdit --> WizardDoc
     AdminNotif --> NotifPolicy
 
     ManagerDoc --> TaskModel
     StaffDoc --> TaskModel
     TrackDoc --> TaskModel
+    WizardDoc --> TaskModel
     CommDoc --> AppInfra
     CommDoc --> NotifPolicy
     ManagerDoc --> NotifPolicy
@@ -189,9 +194,9 @@ graph TB
 
 ---
 
-## 5. TODO (정책 문서 미작성)
+## 5. 정책 문서 현황
 
-| 대상 | 상태 | 비고 |
+| 대상 | 상태 | 문서 |
 |------|------|------|
-| Admin 페이지 (트랙 생성/수정) | 기능 구현 미완성 | 구현 완료 후 문서화 |
+| ~~Admin 위저드 (트랙 생성/수정)~~ | **완료** | `docs/pages/ADMIN_WIZARD_PAGE.md` |
 | ~~알림 시스템 상세 정책~~ | **완료** | `docs/NOTIFICATION_POLICY.md` |
