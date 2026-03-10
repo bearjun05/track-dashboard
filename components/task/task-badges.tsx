@@ -87,10 +87,11 @@ export function SourceBadge({ source }: { source: TaskSource }) {
 /* ── Requester (역할 기반) ── */
 
 const REQUESTER_STYLE: Record<string, string> = {
-  '총괄': 'bg-foreground/[0.06] text-foreground/60',
-  '운영': 'bg-foreground/[0.06] text-foreground/50',
-  '학관': 'bg-foreground/[0.04] text-foreground/40',
-  '시스템': 'bg-foreground/[0.03] text-foreground/30',
+  '총괄': 'bg-violet-500/10 text-violet-600',
+  '운영': 'bg-blue-500/10 text-blue-600',
+  '학관': 'bg-emerald-500/10 text-emerald-600',
+  '튜터': 'bg-amber-500/10 text-amber-600',
+  '시스템': 'bg-foreground/[0.06] text-foreground/45',
 }
 
 export function RequesterBadge({ source, creatorId }: { source: TaskSource; creatorId?: string }) {
