@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { TODAY_STR } from '@/lib/date-constants'
+import { MetricsBoxCard } from '@/components/ui/mini-charts'
 
 function NotionIcon({ className }: { className?: string }) {
   return (
@@ -117,6 +118,11 @@ function TrackStatCard({
           )}
         </div>
       )}
+
+      {/* 이탈율 · NPS */}
+      <div className="mt-2.5">
+        <MetricsBoxCard />
+      </div>
 
       {/* 학관 업무완료율 */}
       <div className="mt-2">

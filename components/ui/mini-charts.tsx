@@ -44,6 +44,53 @@ function TrendBadge({ current, previous, inverted = false }: { current: number; 
   )
 }
 
+export function MetricsBoxCard() {
+  const lastDropout = DROPOUT_DATA[DROPOUT_DATA.length - 1]
+  const prevDropout = DROPOUT_DATA[DROPOUT_DATA.length - 2]
+  const lastNps = NPS_DATA[NPS_DATA.length - 1]
+  const prevNps = NPS_DATA[NPS_DATA.length - 2]
+
+  return (
+    <div className="flex items-center justify-between rounded-lg bg-foreground/[0.03] px-2.5 py-1.5">
+      <div className="flex items-center gap-1.5">
+        <span className="text-[9px] font-semibold text-foreground/35">이탈율</span>
+        <span className="text-[11px] font-bold tabular-nums leading-none text-foreground">{lastDropout.rate}<span className="text-[9px] text-foreground/30">%</span></span>
+        <TrendBadge current={lastDropout.rate} previous={prevDropout.rate} inverted />
+        <div className="h-[16px] w-[36px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={DROPOUT_DATA} margin={{ top: 1, right: 1, left: 1, bottom: 1 }}>
+              <defs>
+                <linearGradient id="dropoutGradCard" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="rgb(239 68 68)" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="rgb(34 197 94)" stopOpacity={0.8} />
+                </linearGradient>
+              </defs>
+              <Line type="monotone" dataKey="rate" stroke="url(#dropoutGradCard)" strokeWidth={1.5} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="h-3 w-px bg-foreground/[0.08]" />
+      <div className="flex items-center gap-1.5">
+        <span className="text-[9px] font-semibold text-foreground/35">NPS</span>
+        <span className="text-[11px] font-bold tabular-nums leading-none text-foreground">{lastNps.score}</span>
+        <TrendBadge current={lastNps.score} previous={prevNps.score} />
+        <div className="h-[16px] w-[36px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={NPS_DATA} margin={{ top: 1, right: 1, left: 1, bottom: 1 }}>
+              <Bar dataKey="score" radius={[2, 2, 0, 0]}>
+                {NPS_DATA.map((_, index) => (
+                  <Cell key={index} fill={index === NPS_DATA.length - 1 ? 'rgb(99 102 241)' : 'rgba(99, 102, 241, 0.25)'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function MetricsBox() {
   const lastDropout = DROPOUT_DATA[DROPOUT_DATA.length - 1]
   const prevDropout = DROPOUT_DATA[DROPOUT_DATA.length - 2]
