@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAdminStore } from '@/lib/admin-store'
 import type { PlannerTrackCard } from '@/lib/admin-mock-data'
 import type { UnifiedSchedule } from '@/components/schedule/schedule-types'
-import { Users, GraduationCap, BookOpen, AlertTriangle, ClipboardList, Calendar, BookMarked, FolderOpen, FileText, Hash, Settings } from 'lucide-react'
+import { Users, GraduationCap, BookOpen, AlertTriangle, ClipboardList, Calendar, BookMarked, FolderOpen, Hash, Settings } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +17,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { TODAY_STR } from '@/lib/date-constants'
+
+function NotionIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3.5 2.5L10.5 2L12.5 4.5V13.5L10 13L3.5 13.5V2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M5.5 6L7 6M5.5 8.5L10 8.5M5.5 11L8.5 11" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    </svg>
+  )
+}
 
 interface TrackExternalLinks {
   googleDrive?: string
@@ -188,35 +197,35 @@ function TrackStatCard({
       {/* Bottom-pinned section: External Links + People + Shortcuts */}
       <div className="mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
         <div className="border-t border-foreground/[0.08] pt-2">
-          <div className="flex items-center gap-1.5 text-[9px] text-foreground/40">
-            <span className="font-medium">링크</span>
+          <TooltipProvider delayDuration={150}>
+          <div className="flex items-center gap-1 text-[9px] text-foreground/40">
+            <span className="shrink-0 font-medium">링크</span>
             {([
-              { key: 'googleDrive' as const, label: 'Drive', icon: <FolderOpen className="h-2.5 w-2.5" /> },
-              { key: 'studentDocs' as const, label: '수강생', icon: <FileText className="h-2.5 w-2.5" /> },
-              { key: 'operationDocs' as const, label: '운영진', icon: <FileText className="h-2.5 w-2.5" /> },
-              { key: 'slackChannel' as const, label: 'Slack', icon: <Hash className="h-2.5 w-2.5" /> },
-            ]).map(({ key, label, icon }) =>
-              links[key] ? (
-                <a
-                  key={key}
-                  href={links[key]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-0.5 rounded-md bg-foreground/[0.04] px-1.5 py-0.5 text-foreground/50 transition-colors hover:bg-foreground/[0.08] hover:text-foreground/70"
-                >
-                  {icon}
-                  <span>{label}</span>
-                </a>
-              ) : (
-                <span
-                  key={key}
-                  className="inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-foreground/15"
-                >
-                  {icon}
-                  <span>{label}</span>
-                </span>
-              ),
-            )}
+              { key: 'googleDrive' as const, tip: 'Google Drive', icon: <FolderOpen className="h-3 w-3" /> },
+              { key: 'studentDocs' as const, tip: '수강생 독스', icon: <NotionIcon className="h-3 w-3" /> },
+              { key: 'operationDocs' as const, tip: '운영진 독스', icon: <NotionIcon className="h-3 w-3" /> },
+              { key: 'slackChannel' as const, tip: 'Slack', icon: <Hash className="h-3 w-3" /> },
+            ]).map(({ key, tip, icon }) => (
+              <Tooltip key={key}>
+                <TooltipTrigger asChild>
+                  {links[key] ? (
+                    <a
+                      href={links[key]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/50 transition-colors hover:bg-foreground/[0.08] hover:text-foreground/70"
+                    >
+                      {icon}
+                    </a>
+                  ) : (
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/15">
+                      {icon}
+                    </span>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-[10px]">{tip}</TooltipContent>
+              </Tooltip>
+            ))}
             <Popover>
               <PopoverTrigger asChild>
                 <button
@@ -272,6 +281,7 @@ function TrackStatCard({
               </PopoverContent>
             </Popover>
           </div>
+          </TooltipProvider>
         </div>
 
         {/* People + Shortcuts */}
