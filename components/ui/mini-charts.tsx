@@ -51,57 +51,51 @@ export function MetricsBox() {
   const prevNps = NPS_DATA[NPS_DATA.length - 2]
 
   return (
-    <div className="flex items-stretch gap-0 rounded-xl border border-foreground/[0.07] bg-gradient-to-b from-foreground/[0.02] to-foreground/[0.04] shadow-sm">
+    <div className="flex h-[32px] items-center gap-0 rounded-lg border border-foreground/[0.07] bg-gradient-to-b from-foreground/[0.02] to-foreground/[0.04]">
       {/* Dropout Rate */}
-      <div className="flex flex-col gap-0.5 px-3 py-2">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[9px] font-semibold uppercase tracking-wider text-foreground/40">이탈율</span>
-          <TrendBadge current={lastDropout.rate} previous={prevDropout.rate} inverted />
+      <div className="flex items-center gap-1.5 px-2.5">
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] font-semibold text-foreground/40">이탈율</span>
+          <span className="text-[12px] font-bold tabular-nums leading-none text-foreground">{lastDropout.rate}<span className="text-[9px] font-medium text-foreground/35">%</span></span>
         </div>
-        <div className="flex items-end gap-2">
-          <span className="text-[18px] font-bold tabular-nums leading-none text-foreground">{lastDropout.rate}<span className="text-[11px] font-medium text-foreground/40">%</span></span>
-          <div className="h-[28px] w-[56px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={DROPOUT_DATA} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
-                <defs>
-                  <linearGradient id="dropoutGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="rgb(239 68 68)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="rgb(34 197 94)" stopOpacity={0.8} />
-                  </linearGradient>
-                </defs>
-                <RTooltip content={<MiniTooltip suffix="%" />} />
-                <Line type="monotone" dataKey="rate" stroke="url(#dropoutGrad)" strokeWidth={2} dot={{ r: 2, fill: 'rgb(34 197 94)', strokeWidth: 0 }} activeDot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+        <TrendBadge current={lastDropout.rate} previous={prevDropout.rate} inverted />
+        <div className="h-[20px] w-[44px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={DROPOUT_DATA} margin={{ top: 2, right: 1, left: 1, bottom: 2 }}>
+              <defs>
+                <linearGradient id="dropoutGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="rgb(239 68 68)" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="rgb(34 197 94)" stopOpacity={0.8} />
+                </linearGradient>
+              </defs>
+              <RTooltip content={<MiniTooltip suffix="%" />} />
+              <Line type="monotone" dataKey="rate" stroke="url(#dropoutGrad)" strokeWidth={1.5} dot={{ r: 1.5, fill: 'rgb(34 197 94)', strokeWidth: 0 }} activeDot={{ r: 2.5 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
-        <span className="text-[8px] text-foreground/30">{lastDropout.month} 기준</span>
       </div>
 
-      <div className="my-2 w-px bg-foreground/[0.08]" />
+      <div className="h-3.5 w-px bg-foreground/[0.08]" />
 
       {/* NPS */}
-      <div className="flex flex-col gap-0.5 px-3 py-2">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[9px] font-semibold uppercase tracking-wider text-foreground/40">NPS</span>
-          <TrendBadge current={lastNps.score} previous={prevNps.score} />
+      <div className="flex items-center gap-1.5 px-2.5">
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] font-semibold text-foreground/40">NPS</span>
+          <span className="text-[12px] font-bold tabular-nums leading-none text-foreground">{lastNps.score}</span>
         </div>
-        <div className="flex items-end gap-2">
-          <span className="text-[18px] font-bold tabular-nums leading-none text-foreground">{lastNps.score}</span>
-          <div className="h-[28px] w-[56px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={NPS_DATA} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
-                <RTooltip content={<MiniTooltip />} />
-                <Bar dataKey="score" radius={[3, 3, 0, 0]}>
-                  {NPS_DATA.map((_, index) => (
-                    <Cell key={index} fill={index === NPS_DATA.length - 1 ? 'rgb(99 102 241)' : 'rgba(99, 102, 241, 0.25)'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        <TrendBadge current={lastNps.score} previous={prevNps.score} />
+        <div className="h-[20px] w-[44px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={NPS_DATA} margin={{ top: 2, right: 1, left: 1, bottom: 2 }}>
+              <RTooltip content={<MiniTooltip />} />
+              <Bar dataKey="score" radius={[2, 2, 0, 0]}>
+                {NPS_DATA.map((_, index) => (
+                  <Cell key={index} fill={index === NPS_DATA.length - 1 ? 'rgb(99 102 241)' : 'rgba(99, 102, 241, 0.25)'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-        <span className="text-[8px] text-foreground/30">{lastNps.month} 기준</span>
       </div>
     </div>
   )
