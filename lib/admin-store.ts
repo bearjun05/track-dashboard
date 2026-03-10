@@ -114,6 +114,14 @@ interface AdminState {
   addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => void
   updateNotificationConfig: (trackId: string, updates: Partial<Omit<NotificationConfig, 'trackId'>>) => void
 
+  // Toast notification settings (총괄/운영 only)
+  toastSettings: { reviewRequest: boolean; chat: boolean }
+  updateToastSetting: (key: 'reviewRequest' | 'chat', value: boolean) => void
+
+  // Slack integration (placeholder)
+  slackSettings: { enabled: boolean; triggerOnRequest: boolean }
+  updateSlackSetting: (key: 'enabled' | 'triggerOnRequest', value: boolean) => void
+
   // Kanban actions
   moveKanbanCard: (cardId: string, newStatus: KanbanStatus) => void
   updateKanbanCardStatus: (cardId: string, newStatus: KanbanStatus) => void
@@ -205,6 +213,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   trackNotices: mockTrackNotices,
   notifications: mockNotifications,
   notificationConfigs: mockNotificationConfigs,
+  toastSettings: { reviewRequest: true, chat: true },
+  slackSettings: { enabled: false, triggerOnRequest: true },
   managerTasks: mockManagerTasks,
   commNotifications: mockCommNotifications,
   commMessages: mockCommMessages,
@@ -229,6 +239,16 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       notificationConfigs: state.notificationConfigs.map((c) =>
         c.trackId === trackId ? { ...c, ...updates } : c,
       ),
+    })),
+
+  updateToastSetting: (key, value) =>
+    set((state) => ({
+      toastSettings: { ...state.toastSettings, [key]: value },
+    })),
+
+  updateSlackSetting: (key, value) =>
+    set((state) => ({
+      slackSettings: { ...state.slackSettings, [key]: value },
     })),
 
   assignTask: (taskId, staffId, staffName) => {
@@ -298,11 +318,27 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   },
 
   requestTaskReview: (taskId, reviewerId, reviewerName) => {
+    const task = get().trackTasks.find((t) => t.id === taskId)
     set((state) => ({
       trackTasks: state.trackTasks.map((t) =>
         t.id === taskId ? { ...t, status: 'pending_review' as TrackTaskStatus, reviewerId, reviewerName } : t,
       ),
     }))
+    if (task) {
+      const recipientRole: RecipientRole = reviewerId === 'mgr1' ? 'operator_manager' : 'operator'
+      const notiType: NotificationType = reviewerId === 'mgr1' ? 'request_received' : 'task_review_requested'
+      get().addNotification({
+        type: notiType,
+        category: 'action',
+        recipientRole,
+        title: `확인요청: ${task.title}`,
+        description: `${task.assigneeName ?? '담당자'}님이 확인을 요청했습니다`,
+        linkTo: `/tracks/${task.trackId}/tasks?openTask=${taskId}`,
+        relatedTrackId: task.trackId,
+        relatedTaskId: taskId,
+        relatedStaffId: task.assigneeId,
+      })
+    }
   },
 
   addTrackTask: (task) =>

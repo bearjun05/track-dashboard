@@ -11,7 +11,7 @@ import {
   NOTIFICATION_TYPE_CONFIG,
 } from '@/lib/admin-mock-data'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, ArrowRight, Info, Zap, Bell, AlertTriangle, Clock, Shield, Lock, User } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Info, Zap, Bell, AlertTriangle, Clock, Shield, Lock, User, MessageSquare, Slack } from 'lucide-react'
 
 const ROLE_LABEL: Record<string, string> = {
   operator_manager: '총괄',
@@ -229,11 +229,20 @@ function InfoTooltip({ children }: { children: React.ReactNode }) {
 }
 
 export function NotificationSettings() {
-  const { plannerTracks, notificationConfigs, updateNotificationConfig } = useAdminStore()
+  const {
+    plannerTracks,
+    notificationConfigs,
+    updateNotificationConfig,
+    toastSettings,
+    updateToastSetting,
+    slackSettings,
+    updateSlackSetting,
+  } = useAdminStore()
   const currentRole = useRoleStore((s) => s.currentRole)
   const [selectedTrackId, setSelectedTrackId] = useState(plannerTracks[0]?.id ?? 'track1')
 
   const isManager = currentRole === 'operator_manager'
+  const isOperatorOrManager = currentRole === 'operator_manager' || currentRole === 'operator'
   const config = notificationConfigs.find((c) => c.trackId === selectedTrackId)
   const alertGroups = useMemo(groupByCategory, [])
 

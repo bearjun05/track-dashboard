@@ -1,12 +1,24 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { X, Send, FileText, Paperclip, MessageCircle, Clock, User, Calendar, CheckCircle2, Tag, ChevronDown } from 'lucide-react'
+import { X, Send, FileText, Paperclip, MessageCircle, Clock, User, Calendar, CheckCircle2, Tag, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useNameLookup } from '@/lib/hooks/use-name-lookup'
-import type { UnifiedTask, TaskMessage, TaskStatus } from './task-types'
-import { STATUS_CONFIG } from './task-types'
-import { StatusBadge, PriorityBadge, SourceBadge } from './task-badges'
+import { useRoleStore } from '@/lib/role-store'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import type { UnifiedTask, TaskMessage, TaskStatus, TaskPriority } from './task-types'
+import { STATUS_CONFIG, PRIORITY_CONFIG } from './task-types'
+import { StatusBadge, PriorityBadge, RequesterBadge } from './task-badges'
+import { SlackMarkdown } from '@/lib/slack-markdown'
 
 function fmtMsgTime(ts: string): string {
   const d = new Date(ts)
@@ -30,20 +42,63 @@ interface Props {
   onCancelReview?: (id: string) => void
   onChangeStatus?: (id: string, status: string) => void
   onMarkInProgress?: (id: string) => void
+  onEdit?: (id: string, updates: Partial<UnifiedTask>) => void
+  onDelete?: (id: string) => void
   staffColor?: string | null
 }
 
-export function TaskDetailModal({ task, onClose, onComplete, onDefer, onSendMessage, onRequestReview, onCancelReview, onChangeStatus, onMarkInProgress, staffColor }: Props) {
+export function TaskDetailModal({ task, onClose, onComplete, onDefer, onSendMessage, onRequestReview, onCancelReview, onChangeStatus, onMarkInProgress, onEdit, onDelete, staffColor }: Props) {
   const [chatInput, setChatInput] = useState('')
   const [statusOpen, setStatusOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(task.title)
+  const [editDescription, setEditDescription] = useState(task.description ?? '')
+  const [editPriority, setEditPriority] = useState<TaskPriority>(task.priority)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const statusRef = useRef<HTMLDivElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const done = task.status === 'completed'
   const reviewing = task.status === 'pending_review'
   const getName = useNameLookup()
   const hasReviewer = !!task.reviewerId
+  const { currentRole, ROLE_USER_MAP } = useRoleStore()
+  const currentUserId = ROLE_USER_MAP[currentRole]
+  const canEdit =
+    currentRole === 'operator_manager' || currentRole === 'operator'
+      ? true
+      : task.creatorId === currentUserId
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [task.messages.length])
+
+  useEffect(() => {
+    if (!isEditing) {
+      setEditTitle(task.title)
+      setEditDescription(task.description ?? '')
+      setEditPriority(task.priority)
+    }
+  }, [task.id, task.title, task.description, task.priority, isEditing])
+
+  const handleEditSave = () => {
+    const updates: Partial<UnifiedTask> = {}
+    if (editTitle !== task.title) updates.title = editTitle
+    if (editDescription !== (task.description ?? '')) updates.description = editDescription
+    if (editPriority !== task.priority) updates.priority = editPriority
+    if (Object.keys(updates).length > 0) onEdit?.(task.id, updates)
+    setIsEditing(false)
+  }
+
+  const handleEditCancel = () => {
+    setEditTitle(task.title)
+    setEditDescription(task.description ?? '')
+    setEditPriority(task.priority)
+    setIsEditing(false)
+  }
+
+  const handleDeleteConfirm = () => {
+    onDelete?.(task.id)
+    setDeleteConfirmOpen(false)
+    onClose()
+  }
 
   useEffect(() => {
     if (task.status === 'pending') onMarkInProgress?.(task.id)
@@ -96,61 +151,125 @@ export function TaskDetailModal({ task, onClose, onComplete, onDefer, onSendMess
           <div className="min-w-0 flex-1">
             {/* Row 1: title + priority | source */}
             <div className="flex items-center gap-2">
-              <h3 className={cn('min-w-0 truncate text-base font-semibold', done ? 'text-foreground/30 line-through' : 'text-foreground')}>
-                {task.title}
-              </h3>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="min-w-0 flex-1 rounded-md border border-foreground/10 bg-transparent px-2 py-1 text-base font-semibold text-foreground focus:border-foreground/20 focus:outline-none"
+                />
+              ) : (
+                <h3 className={cn('min-w-0 truncate text-base font-semibold', done ? 'text-foreground/30 line-through' : 'text-foreground')}>
+                  {task.title}
+                </h3>
+              )}
               <div className="flex shrink-0 items-center gap-1.5">
-                {task.priority !== 'normal' && <PriorityBadge priority={task.priority} />}
-                {(task.priority !== 'normal') && <span className="text-foreground/10">|</span>}
-                <SourceBadge source={task.source} />
+                {isEditing ? (
+                  <select
+                    value={editPriority}
+                    onChange={(e) => setEditPriority(e.target.value as TaskPriority)}
+                    className="rounded-md border border-foreground/10 bg-transparent px-2 py-1 text-[11px] text-foreground/70 focus:border-foreground/20 focus:outline-none"
+                  >
+                    {(Object.keys(PRIORITY_CONFIG) as TaskPriority[]).map((p) => (
+                      <option key={p} value={p}>{PRIORITY_CONFIG[p].label}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <>
+                    {task.priority !== 'normal' && <PriorityBadge priority={task.priority} />}
+                    {(task.priority !== 'normal') && <span className="text-foreground/10">|</span>}
+                  </>
+                )}
+                <RequesterBadge source={task.source} creatorId={task.creatorId} />
               </div>
             </div>
-            {/* Row 2: status dropdown */}
+            {/* Row 2: status dropdown or edit Save/Cancel */}
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <div ref={statusRef} className="relative">
-                <button
-                  type="button"
-                  onClick={() => { if (!done) setStatusOpen(!statusOpen) }}
-                  className={cn('inline-flex items-center gap-1 rounded-full transition-colors', !done && 'hover:opacity-80')}
-                >
-                  <StatusBadge status={task.status} />
-                  {!done && <ChevronDown className={cn('h-3 w-3 text-foreground/30 transition-transform', statusOpen && 'rotate-180')} />}
-                </button>
-                {statusOpen && (
-                  <div className="absolute left-0 top-full z-20 mt-1 w-40 rounded-lg border border-border bg-card py-1 shadow-lg">
-                    {statusOptions
-                      .filter(opt => {
-                        if (opt.key === 'completed' && hasReviewer) return false
-                        if (opt.key === 'pending_review' && !hasReviewer) return false
-                        return true
-                      })
-                      .map(opt => {
-                        const c = STATUS_CONFIG[opt.status]
-                        const isCurrent = task.status === opt.status
-                        return (
-                          <button
-                            key={opt.key}
-                            type="button"
-                            onClick={() => handleStatusChange(opt.storeStatus)}
-                            className={cn(
-                              'flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] transition-colors hover:bg-foreground/[0.03]',
-                              isCurrent && 'bg-foreground/[0.04] font-medium',
-                            )}
-                          >
-                            <span className={cn('inline-block h-2 w-2 shrink-0 rounded-full', c.dotCls)} />
-                            <span className={isCurrent ? 'text-foreground' : 'text-foreground/60'}>{c.label}</span>
-                            {isCurrent && <span className="ml-auto text-[10px] text-foreground/25">현재</span>}
-                          </button>
-                        )
-                      })}
-                  </div>
-                )}
-              </div>
+              {isEditing ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleEditSave}
+                    className="rounded-md bg-foreground px-3 py-1.5 text-[11px] font-medium text-background transition-colors hover:bg-foreground/80"
+                  >
+                    저장
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleEditCancel}
+                    className="rounded-md border border-foreground/15 px-3 py-1.5 text-[11px] font-medium text-foreground/60 transition-colors hover:bg-foreground/[0.04]"
+                  >
+                    취소
+                  </button>
+                </div>
+              ) : (
+                <div ref={statusRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => { if (!done) setStatusOpen(!statusOpen) }}
+                    className={cn('inline-flex items-center gap-1 rounded-full transition-colors', !done && 'hover:opacity-80')}
+                  >
+                    <StatusBadge status={task.status} />
+                    {!done && <ChevronDown className={cn('h-3 w-3 text-foreground/30 transition-transform', statusOpen && 'rotate-180')} />}
+                  </button>
+                  {statusOpen && (
+                    <div className="absolute left-0 top-full z-20 mt-1 w-40 rounded-lg border border-border bg-card py-1 shadow-lg">
+                      {statusOptions
+                        .filter(opt => {
+                          if (opt.key === 'completed' && hasReviewer) return false
+                          if (opt.key === 'pending_review' && !hasReviewer) return false
+                          return true
+                        })
+                        .map(opt => {
+                          const c = STATUS_CONFIG[opt.status]
+                          const isCurrent = task.status === opt.status
+                          return (
+                            <button
+                              key={opt.key}
+                              type="button"
+                              onClick={() => handleStatusChange(opt.storeStatus)}
+                              className={cn(
+                                'flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] transition-colors hover:bg-foreground/[0.03]',
+                                isCurrent && 'bg-foreground/[0.04] font-medium',
+                              )}
+                            >
+                              <span className={cn('inline-block h-2 w-2 shrink-0 rounded-full', c.dotCls)} />
+                              <span className={isCurrent ? 'text-foreground' : 'text-foreground/60'}>{c.label}</span>
+                              {isCurrent && <span className="ml-auto text-[10px] text-foreground/25">현재</span>}
+                            </button>
+                          )
+                        })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-          <button type="button" onClick={onClose} className="shrink-0 rounded-md p-1.5 text-foreground/25 transition-colors hover:bg-foreground/[0.04] hover:text-foreground/50">
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex shrink-0 items-center gap-0.5">
+            {canEdit && onEdit && !isEditing && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="rounded-md p-1.5 text-foreground/25 transition-colors hover:bg-foreground/[0.04] hover:text-foreground/50"
+                title="수정"
+              >
+                <Pencil className="h-5 w-5" />
+              </button>
+            )}
+            {canEdit && onDelete && (
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmOpen(true)}
+                className="rounded-md p-1.5 text-foreground/25 transition-colors hover:bg-foreground/[0.04] hover:text-foreground/50 hover:text-destructive/80"
+                title="삭제"
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
+            )}
+            <button type="button" onClick={onClose} className="rounded-md p-1.5 text-foreground/25 transition-colors hover:bg-foreground/[0.04] hover:text-foreground/50">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* ──── Body ──── */}
@@ -184,9 +303,19 @@ export function TaskDetailModal({ task, onClose, onComplete, onDefer, onSendMess
           {/* Description */}
           <div className="border-b border-foreground/[0.06] px-5 py-4">
             <SectionHead icon={<FileText className="h-3.5 w-3.5" />} label="상세 내용" />
-            {task.description
-              ? <p className="mt-2 text-sm leading-relaxed text-foreground/60">{task.description}</p>
-              : <p className="mt-2 text-sm text-foreground/20">설명이 없습니다</p>}
+            {isEditing ? (
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={4}
+                className="mt-2 w-full resize-y rounded-md border border-foreground/10 bg-transparent px-3 py-2 text-sm leading-relaxed text-foreground/60 focus:border-foreground/20 focus:outline-none"
+                placeholder="설명을 입력하세요"
+              />
+            ) : task.description ? (
+              <p className="mt-2 text-sm leading-relaxed text-foreground/60">{task.description}</p>
+            ) : (
+              <p className="mt-2 text-sm text-foreground/20">설명이 없습니다</p>
+            )}
           </div>
 
           {/* Output */}
@@ -259,6 +388,28 @@ export function TaskDetailModal({ task, onClose, onComplete, onDefer, onSendMess
           )}
         </div>
       </div>
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent className="border-border bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">업무 삭제</AlertDialogTitle>
+            <AlertDialogDescription className="text-foreground/60">
+              이 업무를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-foreground/10 text-foreground/60 hover:bg-foreground/[0.04]">
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
@@ -292,7 +443,7 @@ function Bubble({ msg }: { msg: TaskMessage }) {
         'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
         msg.isSelf ? 'rounded-tr-md bg-foreground text-background' : 'rounded-tl-md bg-foreground/[0.06] text-foreground/70',
       )}>
-        {msg.content}
+        <SlackMarkdown text={msg.content} className={msg.isSelf ? 'text-background [&_a]:text-blue-300' : 'text-foreground/70'} />
       </div>
       <span className="mt-0.5 text-[10px] text-foreground/20">{fmtMsgTime(msg.timestamp)}</span>
     </div>

@@ -1,19 +1,29 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAdminStore } from '@/lib/admin-store'
 import type { PlannerTrackCard } from '@/lib/admin-mock-data'
 import type { UnifiedSchedule } from '@/components/schedule/schedule-types'
-import { Users, GraduationCap, BookOpen, AlertTriangle, ClipboardList, Calendar, BookMarked } from 'lucide-react'
+import { Users, GraduationCap, BookOpen, AlertTriangle, ClipboardList, Calendar, BookMarked, FolderOpen, FileText, Hash, Settings } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { TODAY_STR } from '@/lib/date-constants'
+
+interface TrackExternalLinks {
+  googleDrive?: string
+  studentDocs?: string
+  operationDocs?: string
+  slackChannel?: string
+}
 
 function MiniProgress({ value, size = 'sm' }: { value: number; size?: 'sm' | 'md' }) {
   const h = size === 'md' ? 'h-1.5' : 'h-1'
@@ -59,6 +69,8 @@ function TrackStatCard({
   currentCurriculum?: string
   showOperator?: boolean
 }) {
+  const [links, setLinks] = useState<TrackExternalLinks>({})
+
   return (
     <Link
       href={`/tracks/${track.id}`}
@@ -172,6 +184,128 @@ function TrackStatCard({
           })}
         </div>
       )}
+
+      {/* External Links */}
+      <div className="mt-2 border-t border-foreground/[0.06]" onClick={(e) => e.stopPropagation()}>
+        <div className="mt-2 flex items-center justify-between gap-1">
+          <div className="flex items-center gap-0.5">
+            {links.googleDrive ? (
+              <a
+                href={links.googleDrive}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
+                title="Google Drive"
+              >
+                <FolderOpen className="h-3 w-3" />
+              </a>
+            ) : (
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20" title="Google Drive">
+                <FolderOpen className="h-3 w-3" />
+              </span>
+            )}
+            {links.studentDocs ? (
+              <a
+                href={links.studentDocs}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
+                title="Notion - 수강생 독스"
+              >
+                <FileText className="h-3 w-3" />
+              </a>
+            ) : (
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20" title="Notion - 수강생 독스">
+                <FileText className="h-3 w-3" />
+              </span>
+            )}
+            {links.operationDocs ? (
+              <a
+                href={links.operationDocs}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
+                title="Notion - 운영진 독스"
+              >
+                <FileText className="h-3 w-3" />
+              </a>
+            ) : (
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20" title="Notion - 운영진 독스">
+                <FileText className="h-3 w-3" />
+              </span>
+            )}
+            {links.slackChannel ? (
+              <a
+                href={links.slackChannel}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
+                title="Slack channel"
+              >
+                <Hash className="h-3 w-3" />
+              </a>
+            ) : (
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20" title="Slack channel">
+                <Hash className="h-3 w-3" />
+              </span>
+            )}
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20 transition-colors hover:text-foreground/40"
+                title="링크 설정"
+              >
+                <Settings className="h-3 w-3" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80" onClick={(e) => e.stopPropagation()}>
+              <div className="space-y-3">
+                <h4 className="text-xs font-medium text-foreground">외부 링크 설정</h4>
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Google Drive</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={links.googleDrive ?? ''}
+                      onChange={(e) => setLinks((p) => ({ ...p, googleDrive: e.target.value || undefined }))}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Notion - 수강생 독스</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={links.studentDocs ?? ''}
+                      onChange={(e) => setLinks((p) => ({ ...p, studentDocs: e.target.value || undefined }))}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Notion - 운영진 독스</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={links.operationDocs ?? ''}
+                      onChange={(e) => setLinks((p) => ({ ...p, operationDocs: e.target.value || undefined }))}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Slack channel</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={links.slackChannel ?? ''}
+                      onChange={(e) => setLinks((p) => ({ ...p, slackChannel: e.target.value || undefined }))}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
 
       {/* People + Shortcuts */}
       <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">

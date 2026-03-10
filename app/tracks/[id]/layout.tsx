@@ -7,6 +7,7 @@ import { useAdminStore } from '@/lib/admin-store'
 import { ROLE_LABELS } from '@/lib/role-labels'
 import { useRoleStore, ROLE_HOME } from '@/lib/role-store'
 import { ArrowLeft, Users, GraduationCap, ListTodo, CalendarDays, AlertTriangle } from 'lucide-react'
+import { MetricsBox } from '@/components/ui/mini-charts'
 import { cn } from '@/lib/utils'
 import { TODAY_STR } from '@/lib/date-constants'
 
@@ -81,11 +82,14 @@ export default function TrackLayout({
               }`}>{dDayText.label}</span>
             )}
           </div>
-          <p className="text-[12px] text-muted-foreground">
+          <div className="flex items-center gap-4">
+            <MetricsBox />
+            <p className="text-[12px] text-muted-foreground">
             <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{ROLE_LABELS.learning_manager} {staffList.length}명</span>
             <span className="mx-1.5 text-foreground/20">·</span>
             <span className="inline-flex items-center gap-1"><GraduationCap className="h-3 w-3" />{track.studentCount}명</span>
           </p>
+          </div>
         </div>
         <nav className="flex items-center gap-0.5 px-6">
           {tabs.map((tab) => {

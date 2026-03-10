@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import {
   MessageSquare, X, Minus, ChevronDown, ChevronRight,
   Pin, Plus, Send, Reply, ThumbsUp, MoreHorizontal,
-  Bell, ListTodo, CheckCircle2, AlertTriangle, Clock, UserCheck, Pencil, Trash2,
+  Bell, ListTodo, CheckCircle2, AlertTriangle, Clock, UserCheck, Pencil, Trash2, Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SlackMarkdown } from '@/lib/slack-markdown'
+import { useChatSearch } from '@/lib/hooks/use-chat-search'
 import { useAdminStore } from '@/lib/admin-store'
 import { useRoleStore, ROLE_USER_MAP, ROLE_USER_NAME } from '@/lib/role-store'
 import type { AppRole } from '@/lib/role-store'
@@ -48,6 +50,7 @@ export function FloatingCommWidget() {
     commMessages,
     commStickies,
     commUnreadMap,
+    staffConversations,
     addCommMessage,
     addCommReaction,
     updateStickyNote,
@@ -118,6 +121,29 @@ export function FloatingCommWidget() {
     return ''
   }
 
+  const getChannelName = useCallback((channelId: string) => {
+    if (channelId === 'notifications') return '알림'
+    if (channelId.startsWith('chat:')) {
+      const parts = channelId.split(':')
+      const targetId = parts[2]
+      if (targetId === 'mgr1') return '박총괄'
+      for (const t of plannerTracks) {
+        if (t.operator?.id === targetId) return t.operator?.name ?? '운영매니저'
+        const staff = t.staff?.find((s: any) => s.id === targetId)
+        if (staff) return staff.name
+      }
+      return '대화'
+    }
+    const conv = staffConversations.find(c => c.id === channelId)
+    return conv?.taskTitle ?? channelId
+  }, [plannerTracks, staffConversations])
+
+  const { query, setQuery, results, isSearchOpen, openSearch, closeSearch } = useChatSearch(
+    commMessages,
+    staffConversations,
+    getChannelName
+  )
+
   return (
     <>
       {!open && (
@@ -149,8 +175,24 @@ export function FloatingCommWidget() {
               plannerTracks={plannerTracks}
               onMinimize={() => setOpen(false)}
               onClose={() => { setOpen(false); setActiveChannel(null) }}
+              searchOpen={isSearchOpen}
+              onSearchClick={openSearch}
+              onSearchClose={closeSearch}
             />
-            {!activeChannel ? (
+            {isSearchOpen ? (
+              <ChatSearchPanel
+                query={query}
+                setQuery={setQuery}
+                results={results}
+                onResultClick={(r) => {
+                  if (r.source === 'comm') {
+                    setActiveChannel(r.channelId)
+                    closeSearch()
+                  }
+                  // staff results: could navigate to staff page - skip for now
+                }}
+              />
+            ) : !activeChannel ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 text-foreground/20">
                 <MessageSquare className="h-10 w-10" />
                 <p className="text-[13px]">채널을 선택하세요</p>
@@ -323,8 +365,9 @@ function SidebarItem({ icon, label, unread, active, onClick, indent }: {
    Title Bar
    ================================================================ */
 
-function TitleBar({ activeChannel, plannerTracks, onMinimize, onClose }: {
+function TitleBar({ activeChannel, plannerTracks, onMinimize, onClose, searchOpen, onSearchClick, onSearchClose }: {
   activeChannel: string | null; plannerTracks: any[]; onMinimize: () => void; onClose: () => void
+  searchOpen?: boolean; onSearchClick?: () => void; onSearchClose?: () => void
 }) {
   let title = '소통'
 
@@ -346,9 +389,22 @@ function TitleBar({ activeChannel, plannerTracks, onMinimize, onClose }: {
       <div className="flex items-center gap-2">
         {activeChannel === 'notifications' && <Bell className="h-3.5 w-3.5 text-foreground/40" />}
         {activeChannel?.startsWith('chat:') && <span className="inline-block h-2 w-2 rounded-full bg-foreground/25" />}
-        <span className="text-[13px] font-semibold text-foreground">{title}</span>
+        <span className="text-[13px] font-semibold text-foreground">{searchOpen ? '검색' : title}</span>
       </div>
       <div className="flex items-center gap-1">
+        {!searchOpen && onSearchClick && (
+          <button type="button" onClick={onSearchClick}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-foreground/30 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/60"
+            title="검색">
+            <Search className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {searchOpen && onSearchClose && (
+          <button type="button" onClick={onSearchClose}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-foreground/30 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/60">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
         <button type="button" onClick={onMinimize}
           className="flex h-6 w-6 items-center justify-center rounded-md text-foreground/30 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/60">
           <Minus className="h-3.5 w-3.5" />
@@ -442,6 +498,69 @@ function NotificationFeed({ notifications, plannerTracks, currentRole, currentUs
               </div>
             )
           })
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ================================================================
+   Chat Search Panel
+   ================================================================ */
+
+function ChatSearchPanel({ query, setQuery, results, onResultClick }: {
+  query: string
+  setQuery: (q: string) => void
+  results: import('@/lib/hooks/use-chat-search').ChatSearchResult[]
+  onResultClick: (r: import('@/lib/hooks/use-chat-search').ChatSearchResult) => void
+}) {
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center gap-2 border-b border-foreground/[0.06] px-4 py-2">
+        <Search className="h-3.5 w-3.5 shrink-0 text-foreground/30" />
+        <input
+          type="text"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="메시지 검색..."
+          className="min-w-0 flex-1 rounded-md border border-foreground/[0.08] bg-foreground/[0.02] px-3 py-2 text-[13px] text-foreground placeholder:text-foreground/25 focus:border-foreground/15 focus:outline-none"
+          autoFocus
+        />
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {!query.trim() ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-12 text-foreground/25">
+            <Search className="h-10 w-10" />
+            <p className="text-[12px]">검색어를 입력하세요</p>
+          </div>
+        ) : results.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-12 text-foreground/25">
+            <Search className="h-10 w-10" />
+            <p className="text-[12px]">검색 결과가 없습니다</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-foreground/[0.04] py-1">
+            {results.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => onResultClick(r)}
+                disabled={r.source === 'staff'}
+                className={cn(
+                  'w-full px-4 py-2.5 text-left transition-colors',
+                  r.source === 'comm' ? 'hover:bg-foreground/[0.04] cursor-pointer' : 'cursor-default opacity-60',
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-medium text-foreground/50">{r.channelName}</span>
+                  <span className="shrink-0 text-[9px] text-foreground/20">
+                    {new Date(r.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <p className="mt-0.5 line-clamp-2 text-[12px] text-foreground/70">{r.highlightedContent}</p>
+              </button>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -608,7 +727,7 @@ function ChatView({ channelId, messages, sticky, canWriteSticky, stickyHint, cur
                     )}
                     <div className={cn('px-3.5 py-[8px] text-[13px] leading-relaxed', bubbleRadius,
                       isMe ? 'bg-foreground text-background' : 'bg-foreground/[0.05] text-foreground')}>
-                      {msg.content}
+                      <SlackMarkdown text={msg.content} className={isMe ? 'text-background [&_a]:text-blue-300' : 'text-foreground/70'} />
                     </div>
                     {msg.reactions && msg.reactions.length > 0 && (
                       <div className={cn('mt-0.5 flex gap-1', isMe ? 'justify-end' : 'justify-start')}>

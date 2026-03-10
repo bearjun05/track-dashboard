@@ -1,6 +1,7 @@
 'use client'
 
 import { Download, ChevronLeft, ChevronRight, Plus, X, Calendar } from 'lucide-react'
+import { MetricsBox } from '@/components/ui/mini-charts'
 import { useAdminStore } from '@/lib/admin-store'
 import { useInterviewStore } from '@/lib/interview-store'
 import { useState, useEffect, useRef, useMemo } from 'react'
@@ -381,6 +382,7 @@ export function DashboardHeader({ currentPage, onPageChange, selectedDate, onDat
 
         {/* Right: stats + create task */}
         <div className="flex items-center gap-5">
+          {currentPage === 'task' && <MetricsBox />}
           {(currentPage === 'task' || currentPage === 'schedule') ? (
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600">

@@ -3,8 +3,7 @@
 import { useMemo, useState, useCallback } from 'react'
 import { useAdminStore } from '@/lib/admin-store'
 import type { PlannerTrackCard, TrackTask } from '@/lib/admin-mock-data'
-import type { UnifiedTask } from '@/components/task/task-types'
-import { TrendingUp, TrendingDown, Minus, X, Send, Info } from 'lucide-react'
+import { X, Send, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   Tooltip,
@@ -198,48 +197,49 @@ function DayDetailModal({
   )
 }
 
+type TrackHealthRole = 'operator_manager' | 'operator'
+
 /* ── Track Row ── */
 function TrackHealthRow({
   track,
   dailyStats,
   days,
   onBarClick,
+  activeCount,
+  role,
 }: {
   track: PlannerTrackCard
   dailyStats: DayStat[]
   days: string[]
   onBarClick: (trackId: string, dayIndex: number) => void
+  activeCount: number
+  role?: TrackHealthRole
 }) {
   const todayIdx = days.indexOf(TODAY_STR)
   const todayStat = todayIdx >= 0 ? dailyStats[todayIdx] : null
   const todayRate = todayStat?.rate ?? 0
-  const yesterdayStat = todayIdx > 0 ? dailyStats[todayIdx - 1] : null
-  const diff = yesterdayStat && yesterdayStat.total > 0 ? todayRate - yesterdayStat.rate : null
+
+  const roleLabel = role === 'operator_manager' ? '총괄' : role === 'operator' ? '운영' : null
 
   return (
     <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-foreground/[0.02]">
-      {/* Track badge */}
       <span className="inline-flex w-[72px] shrink-0 items-center justify-center rounded-full px-2 py-[2px] text-[10px] font-semibold"
         style={{ backgroundColor: `${track.color}15`, color: track.color }}>
         {track.name.replace(/트랙\s*/, '')}
       </span>
 
-      {/* Today rate + trend (with tooltip) */}
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex w-[70px] shrink-0 cursor-help items-baseline gap-1">
+            <div className="flex w-[90px] shrink-0 cursor-help items-baseline gap-1.5">
               <span className={cn('text-[14px] font-bold tabular-nums', todayStat && todayStat.total > 0 ? rateColorClass(todayRate) : 'text-foreground/25')}>
                 {todayStat && todayStat.total > 0 ? `${todayRate}%` : '-'}
               </span>
-              {diff !== null && diff !== 0 && (
-                <span className={cn('flex items-center gap-0.5 text-[10px] font-medium tabular-nums',
-                  diff > 0 ? 'text-foreground/60' : 'text-destructive')}>
-                  {diff > 0 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
-                  {Math.abs(diff)}%
+              {activeCount > 0 && (
+                <span className="text-[10px] font-medium tabular-nums text-blue-500">
+                  진행 {activeCount}건
                 </span>
               )}
-              {diff === 0 && <Minus className="h-2.5 w-2.5 text-foreground/20" />}
             </div>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-[220px] text-[11px]">
@@ -248,10 +248,12 @@ function TrackHealthRow({
             {todayStat && todayStat.total > 0 && (
               <p className="mt-0.5">완료 {todayStat.completed} / 전체 {todayStat.total} = {todayRate}%</p>
             )}
-            {diff !== null && (
+            {activeCount > 0 && (
               <>
-                <p className="mt-1 font-semibold">전일 대비</p>
-                <p className="text-muted-foreground">어제 완료율({yesterdayStat?.rate ?? 0}%)과의 차이</p>
+                <p className="mt-1 font-semibold">진행중인 일</p>
+                <p className="text-muted-foreground">
+                  {roleLabel ? `${roleLabel} 관점: ` : ''}진행중·확인요청 상태 Task {activeCount}건
+                </p>
               </>
             )}
           </TooltipContent>
@@ -319,8 +321,14 @@ function TrackHealthRow({
   )
 }
 
+function countActiveTasks(trackTasks: TrackTask[], trackId: string): number {
+  return trackTasks.filter(
+    (t) => t.trackId === trackId && (t.status === 'in_progress' || t.status === 'pending_review'),
+  ).length
+}
+
 /* ── Main Section ── */
-export function TrackHealthSection({ tracks }: { tracks: PlannerTrackCard[] }) {
+export function TrackHealthSection({ tracks, role }: { tracks: PlannerTrackCard[]; role?: TrackHealthRole }) {
   const { trackTasks, addManagerTask } = useAdminStore()
   const days = useMemo(() => getLast30Days(TODAY_STR), [])
 
@@ -331,6 +339,7 @@ export function TrackHealthSection({ tracks }: { tracks: PlannerTrackCard[] }) {
         return {
           track,
           dailyStats: computeDailyStats(trackTasks, track.id, days, staffList),
+          activeCount: countActiveTasks(trackTasks, track.id),
         }
       }),
     [tracks, trackTasks, days],
@@ -405,13 +414,15 @@ export function TrackHealthSection({ tracks }: { tracks: PlannerTrackCard[] }) {
       </div>
       <div className="rounded-xl border border-border bg-card">
         <div className="divide-y divide-border/50">
-          {trackStats.map(({ track, dailyStats }) => (
+          {trackStats.map(({ track, dailyStats, activeCount }) => (
             <TrackHealthRow
               key={track.id}
               track={track}
               dailyStats={dailyStats}
               days={days}
               onBarClick={handleBarClick}
+              activeCount={activeCount}
+              role={role}
             />
           ))}
         </div>

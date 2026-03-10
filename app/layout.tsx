@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google'
 import { AppShell } from '@/components/layout/app-shell'
 import { Toaster } from '@/components/ui/sonner'
 import { FloatingCommWidget } from '@/components/comm/floating-comm-widget'
+import { ToastNotificationListener } from '@/components/notifications/toast-notification-listener'
 
 import './globals.css'
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <AppShell>{children}</AppShell>
         <FloatingCommWidget />
+        <ToastNotificationListener />
         <Toaster position="bottom-center" />
       </body>
     </html>

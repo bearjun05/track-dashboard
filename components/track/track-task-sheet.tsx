@@ -191,6 +191,10 @@ const STATUS_ORDER: Record<string, number> = {
   overdue: 0, unassigned: 1, pending_review: 2, in_progress: 3, pending: 4, completed: 5,
 }
 
+const PRIORITY_ORDER: Record<string, number> = {
+  urgent: 0, important: 1, normal: 2,
+}
+
 const FILTER_TABS: { key: FilterKey; label: string; color?: 'red' | 'amber' }[] = [
   { key: 'all', label: '전체' },
   { key: 'overdue', label: '지연', color: 'red' },
@@ -243,7 +247,7 @@ export function TrackTaskSheet({
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [priorityFilter, setPriorityFilter] = useState<Set<'urgent' | 'important'>>(new Set())
-  const [sortKey, setSortKey] = useState<SortKey>('date')
+  const [sortKey, setSortKey] = useState<SortKey>('status')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   const [selectedTask, setSelectedTask] = useState<TrackTask | null>(null)
@@ -323,6 +327,11 @@ export function TrackTaskSheet({
         const na = a.assigneeName ?? '\uffff'
         const nb = b.assigneeName ?? '\uffff'
         cmp = na.localeCompare(nb)
+      }
+      if (cmp === 0) {
+        const pa = PRIORITY_ORDER[a.priority ?? 'normal'] ?? 2
+        const pb = PRIORITY_ORDER[b.priority ?? 'normal'] ?? 2
+        cmp = pa - pb
       }
       return sortDir === 'asc' ? cmp : -cmp
     })
@@ -524,7 +533,7 @@ export function TrackTaskSheet({
         <div className="ml-2 flex w-[84px] shrink-0 items-center justify-center">
           <SortButton label="시간" sortKey="date" current={sortKey} dir={sortDir} onToggle={toggleSort} />
         </div>
-        <div className="ml-2 flex w-[48px] shrink-0 items-center justify-center">소스</div>
+        <div className="ml-2 flex w-[48px] shrink-0 items-center justify-center">요청자</div>
       </div>
 
       {/* ── Task list ── */}

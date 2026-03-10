@@ -2,6 +2,7 @@ import { Star, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { TaskStatus, TaskPriority, TaskSource } from './task-types'
 import { STATUS_CONFIG, PRIORITY_CONFIG, SOURCE_CONFIG } from './task-types'
+import { getRequesterLabel } from '@/lib/role-labels'
 
 /* ── Status ── */
 
@@ -72,13 +73,32 @@ export function PriorityIndicator({ priority }: { priority: TaskPriority }) {
   return <Star className="h-3.5 w-3.5 text-amber-500" />
 }
 
-/* ── Source ── */
+/* ── Source (legacy) ── */
 
 export function SourceBadge({ source }: { source: TaskSource }) {
   const c = SOURCE_CONFIG[source]
   return (
     <span className={cn('inline-flex items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-[10px] font-medium', c.cls)}>
       {c.label}
+    </span>
+  )
+}
+
+/* ── Requester (역할 기반) ── */
+
+const REQUESTER_STYLE: Record<string, string> = {
+  '총괄': 'bg-foreground/[0.06] text-foreground/60',
+  '운영': 'bg-foreground/[0.06] text-foreground/50',
+  '학관': 'bg-foreground/[0.04] text-foreground/40',
+  '시스템': 'bg-foreground/[0.03] text-foreground/30',
+}
+
+export function RequesterBadge({ source, creatorId }: { source: TaskSource; creatorId?: string }) {
+  const label = getRequesterLabel(source, creatorId)
+  const cls = REQUESTER_STYLE[label] ?? REQUESTER_STYLE['시스템']
+  return (
+    <span className={cn('inline-flex items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-[10px] font-medium', cls)}>
+      {label}
     </span>
   )
 }

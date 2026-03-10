@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { useStaffDashboard } from '@/lib/hooks/use-staff-dashboard'
+import { SlackMarkdown } from '@/lib/slack-markdown'
+import { highlightMatch } from '@/lib/hooks/use-chat-search'
 import { trackTaskToUnified } from '@/components/task/task-adapter'
 import { TaskDetailModal } from '@/components/task/task-detail-modal'
 import type { UnifiedTask } from '@/components/task/task-types'
@@ -21,6 +23,7 @@ import {
   AlertTriangle,
   Clock,
   UserCheck,
+  Search,
 } from 'lucide-react'
 
 /* ───── Types ───── */
@@ -350,6 +353,7 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
   const [taskModal, setTaskModal] = useState<UnifiedTask | null>(null)
   const [readThreadIds, setReadThreadIds] = useState<Set<string>>(new Set())
   const [ackedNotifIds, setAckedNotifIds] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
 
   const toggleAckNotif = useCallback((id: string) => {
     setAckedNotifIds(prev => {
@@ -377,6 +381,25 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
     () => messages.filter(m => m.taskPreview && !readThreadIds.has(m.taskPreview.taskId)),
     [messages, readThreadIds],
   )
+
+  // Search results across all contacts (excluding system)
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return []
+    const out: { contactId: ContactId; contactName: string; msg: Message }[] = []
+    for (const c of contacts) {
+      if (c.id === '__system__') continue
+      const msgs = allMessages[c.id] ?? []
+      for (const msg of msgs) {
+        const content = msg.content || msg.taskPreview?.lastContent || ''
+        if (content && content.toLowerCase().includes(q)) {
+          out.push({ contactId: c.id, contactName: c.name, msg })
+        }
+      }
+    }
+    out.sort((a, b) => new Date(b.msg.timestamp).getTime() - new Date(a.msg.timestamp).getTime())
+    return out
+  }, [searchQuery, contacts, allMessages])
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -450,9 +473,68 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
 
   const myId = staffId
 
+  const handleSearchResultClick = useCallback((contactId: ContactId, msgId: string) => {
+    setActiveContact(contactId)
+    setSearchQuery('')
+    setTimeout(() => {
+      const el = document.querySelector(`[data-msg-id="${msgId}"]`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 150)
+  }, [])
+
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-xl border border-foreground/[0.08] bg-background shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-      {/* ── Header with contact tabs ── */}
+      {/* ── Search bar ── */}
+      <div className="flex shrink-0 items-center gap-2 border-b border-foreground/[0.06] px-3 py-2">
+        <Search className="h-3.5 w-3.5 shrink-0 text-foreground/30" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="메시지 검색..."
+          className="min-w-0 flex-1 rounded-md border border-foreground/[0.08] bg-foreground/[0.02] px-2.5 py-1.5 text-[12px] text-foreground placeholder:text-foreground/25 focus:border-foreground/15 focus:outline-none"
+        />
+        {searchQuery && (
+          <button type="button" onClick={() => setSearchQuery('')} className="rounded p-1 text-foreground/30 hover:text-foreground/50">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* ── Search results (when searching) ── */}
+      {searchQuery.trim() && (
+        <div className="flex-1 overflow-y-auto border-b border-foreground/[0.06]">
+          {searchResults.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-8 text-foreground/25">
+              <Search className="h-8 w-8" />
+              <p className="text-[12px]">검색 결과가 없습니다</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-foreground/[0.04] py-1">
+              {searchResults.map(({ contactId, contactName, msg }) => (
+                <button
+                  key={`${contactId}-${msg.id}`}
+                  type="button"
+                  onClick={() => handleSearchResultClick(contactId, msg.id)}
+                  className="w-full px-4 py-2.5 text-left transition-colors hover:bg-foreground/[0.04]"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-medium text-foreground/50">{contactName}</span>
+                    <span className="shrink-0 text-[9px] text-foreground/20">{fmtTime(msg.timestamp)}</span>
+                  </div>
+                  <p className="mt-0.5 line-clamp-2 text-[12px] text-foreground/70">
+                    {highlightMatch(msg.content || msg.taskPreview?.lastContent || '', searchQuery)}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Header + Chat (hidden when searching) ── */}
+      {!searchQuery.trim() && (
+      <>
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-foreground/[0.06] px-3">
         <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto">
           {contacts.map(c => {
@@ -492,7 +574,7 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
         {pinnedMessage && (
           <div className="flex items-start gap-2 border-y border-foreground/[0.06] bg-foreground/[0.015] px-4 py-2">
             <Pin className="mt-0.5 h-3 w-3 shrink-0 rotate-45 text-foreground/25" />
-            <p className="line-clamp-1 text-[11px] text-foreground/40">{pinnedMessage.content}</p>
+            <p className="line-clamp-1 text-[11px] text-foreground/40"><SlackMarkdown text={pinnedMessage.content} className="text-foreground/40" /></p>
           </div>
         )}
 
@@ -561,7 +643,7 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
                   {showDate && <DateDivider label={fmtDateHeader(msg.timestamp)} />}
                   <div className="my-3 flex justify-center">
                     <span className="rounded-full bg-foreground/[0.04] px-3 py-1 text-[10px] text-foreground/30">
-                      {msg.content}
+                      <SlackMarkdown text={msg.content} className="text-foreground/30" />
                     </span>
                   </div>
                 </div>
@@ -573,7 +655,7 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
               : cn('rounded-[18px]', prevSameAuthor ? 'rounded-tl-md' : '', nextSameAuthor ? 'rounded-bl-md' : 'rounded-bl-md')
 
             return (
-              <div key={msg.id}>
+              <div key={msg.id} data-msg-id={msg.id}>
                 {showDate && <DateDivider label={fmtDateHeader(msg.timestamp)} />}
                 {timeGap && !showDate && <div className="h-4" />}
 
@@ -598,7 +680,7 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
                           <p className="line-clamp-1 text-[10px] text-foreground/25">{msg.replyTo.content}</p>
                         </div>
                       )}
-                      <div
+                        <div
                         className={cn(
                           'px-3 py-[7px] text-[13px] leading-relaxed',
                           bubbleRadius,
@@ -607,7 +689,7 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
                             : 'bg-foreground/[0.05] text-foreground',
                         )}
                       >
-                        {msg.content}
+                        <SlackMarkdown text={msg.content} className={isMe ? 'text-background [&_a]:text-blue-300' : 'text-foreground/70'} />
                       </div>
                       {msg.reactions && msg.reactions.length > 0 && (
                         <div className={cn('mt-0.5 flex gap-1', isMe ? 'justify-end' : 'justify-start')}>
@@ -707,6 +789,8 @@ export function CommChannel({ staffId, selectedDate }: { staffId: string; select
           </div>
         )}
       </div>
+      </>
+      )}
 
       {/* Task detail modal */}
       {taskModal && (

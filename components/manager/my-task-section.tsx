@@ -455,7 +455,7 @@ export function MyTaskSection({
           <div className="ml-2 flex w-[84px] shrink-0 items-center justify-center">
             <SortButton label="시간" sortKey="date" current={sortKey} dir={sortDir} onToggle={toggleSort} />
           </div>
-          <div className="ml-2 flex w-[56px] shrink-0 items-center justify-center">소스</div>
+          <div className="ml-2 flex w-[56px] shrink-0 items-center justify-center">요청자</div>
         </div>
 
         {/* Task list */}

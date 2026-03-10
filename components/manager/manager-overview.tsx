@@ -74,7 +74,7 @@ export function ManagerOverview({
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[1200px] space-y-6 px-6 pt-5 pb-24">
           {/* Weekly Health */}
-          <TrackHealthSection tracks={tracks} />
+          <TrackHealthSection tracks={tracks} role={role} />
 
           {/* Track Stats */}
           <TrackStatsSection tracks={tracks} showOperator={!isOperator} />

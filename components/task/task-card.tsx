@@ -6,10 +6,10 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { useNameLookup } from '@/lib/hooks/use-name-lookup'
 import type { UnifiedTask } from './task-types'
-import { StatusBadge, StatusLabel, PriorityIndicator, SourceBadge, TrackTag, CategoryBadge } from './task-badges'
+import { StatusBadge, StatusLabel, PriorityIndicator, SourceBadge, RequesterBadge, TrackTag, CategoryBadge } from './task-badges'
 
 // re-export for external use
-export { StatusBadge, StatusLabel, SourceBadge }
+export { StatusBadge, StatusLabel, SourceBadge, RequesterBadge }
 
 interface TaskCardBaseProps {
   task: UnifiedTask
@@ -230,10 +230,10 @@ function CompactCard({ task, onClick, showCheckbox, onCheck, showTrack, trackNam
         {time ?? ''}
       </div>
 
-      {/* Col 7: source — w-[56px], center */}
+      {/* Col 7: requester — w-[56px], center */}
       {showSource && (
         <div className="ml-2 flex w-[56px] shrink-0 items-center justify-center">
-          <SourceBadge source={task.source} />
+          <RequesterBadge source={task.source} creatorId={task.creatorId} />
         </div>
       )}
 
@@ -359,9 +359,9 @@ function StandardCard({ task, onClick, selected, onToggleSelect, showCheckbox, o
           </div>
         )}
 
-        {/* Row 3: source + attachment/message indicators */}
+        {/* Row 3: requester + attachment/message indicators */}
         <div className="mt-1.5 flex items-center gap-1.5">
-          <SourceBadge source={task.source} />
+          <RequesterBadge source={task.source} creatorId={task.creatorId} />
           {((task.attachments && task.attachments.length > 0) || task.messages.length > 0) && (
             <span className="ml-auto flex items-center gap-2 text-[11px] text-foreground/20">
               {task.attachments && task.attachments.length > 0 && (
@@ -399,7 +399,7 @@ function ExpandedCard({ task, onClick, onComplete, onDefer, staffColor }: Expand
             </div>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <StatusBadge status={task.status} />
-              <SourceBadge source={task.source} />
+              <RequesterBadge source={task.source} creatorId={task.creatorId} />
               <CategoryBadge category={task.category} />
             </div>
           </div>

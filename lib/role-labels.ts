@@ -15,3 +15,17 @@ export const ROLE_LABELS_FULL: Record<string, string> = {
 }
 
 export type RequesterRole = '총괄' | '운영' | '학관'
+
+export function getUserRoleKey(userId: string): RoleKey | null {
+  if (userId.startsWith('mgr')) return 'operator_manager'
+  if (userId.startsWith('op')) return 'operator'
+  if (userId.startsWith('staff')) return 'learning_manager'
+  if (userId.startsWith('tutor')) return 'tutor'
+  return null
+}
+
+export function getRequesterLabel(source: string, creatorId?: string): string {
+  if (source === 'system' || !creatorId) return '시스템'
+  const role = getUserRoleKey(creatorId)
+  return role ? ROLE_LABELS[role] : '시스템'
+}
