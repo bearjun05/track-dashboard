@@ -178,11 +178,12 @@ export function FloatingCommWidget() {
               searchOpen={isSearchOpen}
               onSearchClick={openSearch}
               onSearchClose={closeSearch}
+              searchQuery={query}
+              onSearchQueryChange={setQuery}
             />
             {isSearchOpen ? (
               <ChatSearchPanel
                 query={query}
-                setQuery={setQuery}
                 results={results}
                 onResultClick={(r) => {
                   if (r.source === 'comm') {
@@ -365,9 +366,10 @@ function SidebarItem({ icon, label, unread, active, onClick, indent }: {
    Title Bar
    ================================================================ */
 
-function TitleBar({ activeChannel, plannerTracks, onMinimize, onClose, searchOpen, onSearchClick, onSearchClose }: {
+function TitleBar({ activeChannel, plannerTracks, onMinimize, onClose, searchOpen, onSearchClick, onSearchClose, searchQuery, onSearchQueryChange }: {
   activeChannel: string | null; plannerTracks: any[]; onMinimize: () => void; onClose: () => void
   searchOpen?: boolean; onSearchClick?: () => void; onSearchClose?: () => void
+  searchQuery?: string; onSearchQueryChange?: (q: string) => void
 }) {
   let title = '소통'
 
@@ -385,26 +387,41 @@ function TitleBar({ activeChannel, plannerTracks, onMinimize, onClose, searchOpe
   }
 
   return (
-    <div className="flex h-12 shrink-0 items-center justify-between border-b border-foreground/[0.06] bg-foreground/[0.015] px-4">
-      <div className="flex items-center gap-2">
+    <div className="flex h-12 shrink-0 items-center gap-2 border-b border-foreground/[0.06] bg-foreground/[0.015] px-4">
+      <div className="flex shrink-0 items-center gap-2">
         {activeChannel === 'notifications' && <Bell className="h-3.5 w-3.5 text-foreground/40" />}
         {activeChannel?.startsWith('chat:') && <span className="inline-block h-2 w-2 rounded-full bg-foreground/25" />}
-        <span className="text-[13px] font-semibold text-foreground">{searchOpen ? '검색' : title}</span>
+        <span className="text-[13px] font-semibold text-foreground">{title}</span>
       </div>
-      <div className="flex items-center gap-1">
-        {!searchOpen && onSearchClick && (
-          <button type="button" onClick={onSearchClick}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-foreground/30 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/60"
-            title="검색">
-            <Search className="h-3.5 w-3.5" />
-          </button>
-        )}
-        {searchOpen && onSearchClose && (
+
+      {/* Inline search input */}
+      {searchOpen ? (
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md border border-foreground/[0.1] bg-background px-2 py-1">
+          <Search className="h-3 w-3 shrink-0 text-foreground/30" />
+          <input
+            type="text"
+            value={searchQuery ?? ''}
+            onChange={e => onSearchQueryChange?.(e.target.value)}
+            placeholder="메시지 검색..."
+            className="min-w-0 flex-1 bg-transparent text-[12px] text-foreground placeholder:text-foreground/25 focus:outline-none"
+            autoFocus
+          />
           <button type="button" onClick={onSearchClose}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-foreground/30 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/60">
-            <X className="h-3.5 w-3.5" />
+            className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-foreground/30 hover:text-foreground/60">
+            <X className="h-3 w-3" />
           </button>
-        )}
+        </div>
+      ) : onSearchClick ? (
+        <button type="button" onClick={onSearchClick}
+          className="ml-1 flex min-w-0 flex-1 items-center gap-1.5 rounded-md border border-foreground/[0.06] bg-foreground/[0.02] px-2 py-1 text-foreground/25 transition-colors hover:border-foreground/[0.1] hover:text-foreground/35">
+          <Search className="h-3 w-3 shrink-0" />
+          <span className="text-[11px]">검색</span>
+        </button>
+      ) : (
+        <div className="flex-1" />
+      )}
+
+      <div className="flex shrink-0 items-center gap-1">
         <button type="button" onClick={onMinimize}
           className="flex h-6 w-6 items-center justify-center rounded-md text-foreground/30 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/60">
           <Minus className="h-3.5 w-3.5" />
@@ -508,25 +525,13 @@ function NotificationFeed({ notifications, plannerTracks, currentRole, currentUs
    Chat Search Panel
    ================================================================ */
 
-function ChatSearchPanel({ query, setQuery, results, onResultClick }: {
+function ChatSearchPanel({ query, results, onResultClick }: {
   query: string
-  setQuery: (q: string) => void
   results: import('@/lib/hooks/use-chat-search').ChatSearchResult[]
   onResultClick: (r: import('@/lib/hooks/use-chat-search').ChatSearchResult) => void
 }) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex shrink-0 items-center gap-2 border-b border-foreground/[0.06] px-4 py-2">
-        <Search className="h-3.5 w-3.5 shrink-0 text-foreground/30" />
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="메시지 검색..."
-          className="min-w-0 flex-1 rounded-md border border-foreground/[0.08] bg-foreground/[0.02] px-3 py-2 text-[13px] text-foreground placeholder:text-foreground/25 focus:border-foreground/15 focus:outline-none"
-          autoFocus
-        />
-      </div>
       <div className="flex-1 overflow-y-auto">
         {!query.trim() ? (
           <div className="flex flex-col items-center justify-center gap-2 py-12 text-foreground/25">

@@ -236,7 +236,7 @@ function TrackHealthRow({
                 {todayStat && todayStat.total > 0 ? `${todayRate}%` : '-'}
               </span>
               {activeCount > 0 && (
-                <span className="text-[10px] font-medium tabular-nums text-blue-500">
+                <span className="text-[10px] font-medium tabular-nums text-foreground/45">
                   진행 {activeCount}건
                 </span>
               )}

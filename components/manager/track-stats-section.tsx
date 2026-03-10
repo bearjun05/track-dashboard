@@ -74,7 +74,7 @@ function TrackStatCard({
   return (
     <Link
       href={`/tracks/${track.id}`}
-      className="group flex flex-col rounded-xl border border-border bg-card px-4 py-3.5 transition-all hover:border-foreground/15 hover:shadow-sm"
+      className="group flex min-h-[240px] flex-col rounded-xl border border-border bg-card px-4 py-3.5 transition-all hover:border-foreground/15 hover:shadow-sm"
     >
       {/* Header */}
       <div className="flex items-center gap-2">
@@ -185,130 +185,97 @@ function TrackStatCard({
         </div>
       )}
 
-      {/* External Links */}
-      <div className="mt-2 border-t border-foreground/[0.06]" onClick={(e) => e.stopPropagation()}>
-        <div className="mt-2 flex items-center justify-between gap-1">
-          <div className="flex items-center gap-0.5">
-            {links.googleDrive ? (
-              <a
-                href={links.googleDrive}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
-                title="Google Drive"
-              >
-                <FolderOpen className="h-3 w-3" />
-              </a>
-            ) : (
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20" title="Google Drive">
-                <FolderOpen className="h-3 w-3" />
-              </span>
+      {/* Bottom-pinned section: External Links + People + Shortcuts */}
+      <div className="mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
+        <div className="border-t border-foreground/[0.08] pt-2">
+          <div className="flex items-center gap-1.5 text-[9px] text-foreground/40">
+            <span className="font-medium">링크</span>
+            {([
+              { key: 'googleDrive' as const, label: 'Drive', icon: <FolderOpen className="h-2.5 w-2.5" /> },
+              { key: 'studentDocs' as const, label: '수강생', icon: <FileText className="h-2.5 w-2.5" /> },
+              { key: 'operationDocs' as const, label: '운영진', icon: <FileText className="h-2.5 w-2.5" /> },
+              { key: 'slackChannel' as const, label: 'Slack', icon: <Hash className="h-2.5 w-2.5" /> },
+            ]).map(({ key, label, icon }) =>
+              links[key] ? (
+                <a
+                  key={key}
+                  href={links[key]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-0.5 rounded-md bg-foreground/[0.04] px-1.5 py-0.5 text-foreground/50 transition-colors hover:bg-foreground/[0.08] hover:text-foreground/70"
+                >
+                  {icon}
+                  <span>{label}</span>
+                </a>
+              ) : (
+                <span
+                  key={key}
+                  className="inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-foreground/15"
+                >
+                  {icon}
+                  <span>{label}</span>
+                </span>
+              ),
             )}
-            {links.studentDocs ? (
-              <a
-                href={links.studentDocs}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
-                title="Notion - 수강생 독스"
-              >
-                <FileText className="h-3 w-3" />
-              </a>
-            ) : (
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20" title="Notion - 수강생 독스">
-                <FileText className="h-3 w-3" />
-              </span>
-            )}
-            {links.operationDocs ? (
-              <a
-                href={links.operationDocs}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
-                title="Notion - 운영진 독스"
-              >
-                <FileText className="h-3 w-3" />
-              </a>
-            ) : (
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20" title="Notion - 운영진 독스">
-                <FileText className="h-3 w-3" />
-              </span>
-            )}
-            {links.slackChannel ? (
-              <a
-                href={links.slackChannel}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
-                title="Slack channel"
-              >
-                <Hash className="h-3 w-3" />
-              </a>
-            ) : (
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20" title="Slack channel">
-                <Hash className="h-3 w-3" />
-              </span>
-            )}
-          </div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/20 transition-colors hover:text-foreground/40"
-                title="링크 설정"
-              >
-                <Settings className="h-3 w-3" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-80" onClick={(e) => e.stopPropagation()}>
-              <div className="space-y-3">
-                <h4 className="text-xs font-medium text-foreground">외부 링크 설정</h4>
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Google Drive</Label>
-                    <Input
-                      placeholder="https://..."
-                      value={links.googleDrive ?? ''}
-                      onChange={(e) => setLinks((p) => ({ ...p, googleDrive: e.target.value || undefined }))}
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Notion - 수강생 독스</Label>
-                    <Input
-                      placeholder="https://..."
-                      value={links.studentDocs ?? ''}
-                      onChange={(e) => setLinks((p) => ({ ...p, studentDocs: e.target.value || undefined }))}
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Notion - 운영진 독스</Label>
-                    <Input
-                      placeholder="https://..."
-                      value={links.operationDocs ?? ''}
-                      onChange={(e) => setLinks((p) => ({ ...p, operationDocs: e.target.value || undefined }))}
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Slack channel</Label>
-                    <Input
-                      placeholder="https://..."
-                      value={links.slackChannel ?? ''}
-                      onChange={(e) => setLinks((p) => ({ ...p, slackChannel: e.target.value || undefined }))}
-                      className="h-8 text-xs"
-                    />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="ml-auto flex h-4 w-4 shrink-0 items-center justify-center rounded text-foreground/20 transition-colors hover:text-foreground/40"
+                  title="링크 설정"
+                >
+                  <Settings className="h-2.5 w-2.5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80" onClick={(e) => e.stopPropagation()}>
+                <div className="space-y-3">
+                  <h4 className="text-xs font-medium text-foreground">외부 링크 설정</h4>
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">Google Drive</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={links.googleDrive ?? ''}
+                        onChange={(e) => setLinks((p) => ({ ...p, googleDrive: e.target.value || undefined }))}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">Notion - 수강생 독스</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={links.studentDocs ?? ''}
+                        onChange={(e) => setLinks((p) => ({ ...p, studentDocs: e.target.value || undefined }))}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">Notion - 운영진 독스</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={links.operationDocs ?? ''}
+                        onChange={(e) => setLinks((p) => ({ ...p, operationDocs: e.target.value || undefined }))}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">Slack channel</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={links.slackChannel ?? ''}
+                        onChange={(e) => setLinks((p) => ({ ...p, slackChannel: e.target.value || undefined }))}
+                        className="h-8 text-xs"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
-      </div>
 
-      {/* People + Shortcuts */}
-      <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+        {/* People + Shortcuts */}
+        <div className="mt-1.5 flex items-center justify-between text-[10px] text-muted-foreground">
         <TooltipProvider delayDuration={200}>
           <div className="flex items-center gap-3">
             <Tooltip>
@@ -344,6 +311,7 @@ function TrackStatCard({
           <ShortcutBtn icon={<ClipboardList className="h-3 w-3" />} label="Task" href={`/tracks/${track.id}/tasks`} />
           <ShortcutBtn icon={<Calendar className="h-3 w-3" />} label="일정" href={`/tracks/${track.id}/schedule`} />
         </div>
+      </div>
       </div>
     </Link>
   )
