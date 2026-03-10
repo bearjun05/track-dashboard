@@ -209,7 +209,7 @@ function TrackStatCard({
             <span className="shrink-0 font-medium">링크</span>
             {([
               { key: 'googleDrive' as const, tip: 'Google Drive', icon: <FolderOpen className="h-3 w-3" /> },
-              { key: 'studentDocs' as const, tip: '수강생 독스', icon: <NotionIcon className="h-3 w-3" /> },
+              { key: 'studentDocs' as const, tip: '수강생 독스', icon: <GraduationCap className="h-3 w-3" /> },
               { key: 'operationDocs' as const, tip: '운영진 독스', icon: <NotionIcon className="h-3 w-3" /> },
               { key: 'slackChannel' as const, tip: 'Slack', icon: <Hash className="h-3 w-3" /> },
             ]).map(({ key, tip, icon }) => (
