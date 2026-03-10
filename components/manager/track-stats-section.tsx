@@ -204,34 +204,32 @@ function TrackStatCard({
       {/* Bottom-pinned section: External Links + People + Shortcuts */}
       <div className="mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
         <div className="border-t border-foreground/[0.08] pt-2">
-          <TooltipProvider delayDuration={150}>
-          <div className="flex items-center gap-1 text-[9px] text-foreground/40">
-            <span className="shrink-0 font-medium">링크</span>
+          <div className="flex items-center gap-px text-[9px]">
             {([
-              { key: 'googleDrive' as const, tip: 'Google Drive', icon: <FolderOpen className="h-3 w-3" /> },
-              { key: 'studentDocs' as const, tip: '수강생 독스', icon: <GraduationCap className="h-3 w-3" /> },
-              { key: 'operationDocs' as const, tip: '운영진 독스', icon: <NotionIcon className="h-3 w-3" /> },
-              { key: 'slackChannel' as const, tip: 'Slack', icon: <Hash className="h-3 w-3" /> },
-            ]).map(({ key, tip, icon }) => (
-              <Tooltip key={key}>
-                <TooltipTrigger asChild>
-                  {links[key] ? (
-                    <a
-                      href={links[key]}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/50 transition-colors hover:bg-foreground/[0.08] hover:text-foreground/70"
-                    >
-                      {icon}
-                    </a>
-                  ) : (
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-foreground/15">
-                      {icon}
-                    </span>
-                  )}
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-[10px]">{tip}</TooltipContent>
-              </Tooltip>
+              { key: 'googleDrive' as const, label: 'Drive', icon: <FolderOpen className="h-2.5 w-2.5" /> },
+              { key: 'studentDocs' as const, label: '수강생', icon: <GraduationCap className="h-2.5 w-2.5" /> },
+              { key: 'operationDocs' as const, label: '운영진', icon: <NotionIcon className="h-2.5 w-2.5" /> },
+              { key: 'slackChannel' as const, label: 'Slack', icon: <Hash className="h-2.5 w-2.5" /> },
+            ]).map(({ key, label, icon }, i, arr) => (
+              <span key={key} className="flex items-center">
+                {links[key] ? (
+                  <a
+                    href={links[key]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 rounded-md px-1.5 py-1 font-medium text-foreground/60 transition-colors hover:bg-foreground/[0.06] hover:text-foreground/80"
+                  >
+                    {icon}
+                    <span>{label}</span>
+                  </a>
+                ) : (
+                  <span className="inline-flex items-center gap-0.5 rounded-md px-1.5 py-1 font-medium text-foreground/20">
+                    {icon}
+                    <span>{label}</span>
+                  </span>
+                )}
+                {i < arr.length - 1 && <span className="mx-0.5 text-foreground/10">|</span>}
+              </span>
             ))}
             <Popover>
               <PopoverTrigger asChild>
@@ -288,7 +286,6 @@ function TrackStatCard({
               </PopoverContent>
             </Popover>
           </div>
-          </TooltipProvider>
         </div>
 
         {/* People + Shortcuts */}
