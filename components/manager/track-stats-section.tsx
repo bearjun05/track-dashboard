@@ -86,41 +86,42 @@ function TrackStatCard({
       href={`/tracks/${track.id}`}
       className="group flex min-h-[240px] flex-col rounded-xl border border-border bg-card px-4 py-3.5 transition-all hover:border-foreground/15 hover:shadow-sm"
     >
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <span
-          className="inline-flex items-center rounded-full px-2 py-[2px] text-[10px] font-semibold"
-          style={{ backgroundColor: `${track.color}15`, color: track.color }}
-        >
-          {track.name}
-        </span>
-        <span className="text-[10px] text-muted-foreground">
-          {track.period.replace(/2026\./g, '').replace(/ /g, '')}
-        </span>
+      {/* Header + Chapter: fixed min-height so MetricsBox aligns across cards */}
+      <div className="min-h-[40px]">
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-flex items-center rounded-full px-2 py-[2px] text-[10px] font-semibold"
+            style={{ backgroundColor: `${track.color}15`, color: track.color }}
+          >
+            {track.name}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            {track.period.replace(/2026\./g, '').replace(/ /g, '')}
+          </span>
+        </div>
+
+        {(currentChapter || currentCurriculum) && (
+          <div className="mt-2 flex items-center gap-1 overflow-hidden text-[9px]">
+            {currentChapter && (
+              <span className="inline-flex items-center gap-0.5 truncate rounded bg-foreground/[0.04] px-1.5 py-0.5 font-medium text-foreground/50">
+                <BookMarked className="h-2.5 w-2.5 shrink-0" />
+                <span className="truncate">{currentChapter}</span>
+              </span>
+            )}
+            {currentChapter && currentCurriculum && (
+              <span className="shrink-0 text-foreground/15">|</span>
+            )}
+            {currentCurriculum && (
+              <span className="inline-flex items-center gap-0.5 truncate rounded bg-foreground/[0.04] px-1.5 py-0.5 font-medium text-foreground/50">
+                <span className="truncate">{currentCurriculum}</span>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* 현재 챕터 | 커리큘럼 */}
-      {(currentChapter || currentCurriculum) && (
-        <div className="mt-2 flex items-center gap-1 overflow-hidden text-[9px]">
-          {currentChapter && (
-            <span className="inline-flex items-center gap-0.5 truncate rounded bg-foreground/[0.04] px-1.5 py-0.5 font-medium text-foreground/50">
-              <BookMarked className="h-2.5 w-2.5 shrink-0" />
-              <span className="truncate">{currentChapter}</span>
-            </span>
-          )}
-          {currentChapter && currentCurriculum && (
-            <span className="shrink-0 text-foreground/15">|</span>
-          )}
-          {currentCurriculum && (
-            <span className="inline-flex items-center gap-0.5 truncate rounded bg-foreground/[0.04] px-1.5 py-0.5 font-medium text-foreground/50">
-              <span className="truncate">{currentCurriculum}</span>
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* 이탈율 · NPS */}
-      <div className="mt-2.5">
+      {/* 구분선 + 이탈율 · NPS */}
+      <div className="mt-2 border-t border-foreground/[0.06] pt-2">
         <MetricsBoxCard />
       </div>
 
