@@ -86,8 +86,8 @@ function TrackStatCard({
       href={`/tracks/${track.id}`}
       className="group flex min-h-[240px] flex-col rounded-xl border border-border bg-card px-4 py-3.5 transition-all hover:border-foreground/15 hover:shadow-sm"
     >
-      {/* Header + Chapter: fixed min-height so MetricsBox aligns across cards */}
-      <div className="min-h-[40px]">
+      {/* Header + Chapter: fixed height so all rows below align across cards */}
+      <div className="min-h-[50px]">
         <div className="flex items-center gap-2">
           <span
             className="inline-flex items-center rounded-full px-2 py-[2px] text-[10px] font-semibold"
